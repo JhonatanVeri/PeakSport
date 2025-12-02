@@ -1,0 +1,139 @@
+body, .fondo-ciproba {
+    min-height: 100vh;
+    margin: 0;
+    background: linear-gradient(120deg, #e4f1fb 0%, #f7fbfe 50%, #eaf0fa 100%);
+}
+
+.anim-fadein {
+    animation: fadeIn 1s;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(30px);}
+    to   { opacity: 1; transform: translateY(0);}
+}
+
+.anim-elevate {
+    animation: elevate 0.7s cubic-bezier(0.39, 0.575, 0.565, 1) 0.1s;
+}
+@keyframes elevate {
+    from { box-shadow: 0 4px 20px rgba(0,0,0,0.05);}
+    to   { box-shadow: 0 12px 48px 0 rgba(16,58,87,0.15);}
+}
+
+.contenedor-mfa {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.card-verificacion {
+    background: #fff;
+    border-radius: 22px;
+    padding: 2.4rem 2rem 1.5rem 2rem;
+    box-shadow: 0 12px 48px 0 rgba(16,58,87,0.12);
+    max-width: 410px;
+    width: 100%;
+    margin: auto;
+    text-align: center;
+    transition: box-shadow 0.2s;
+}
+
+.card-verificacion h2 {
+    font-size: 1.7rem;
+    color: #202a41;
+    margin-bottom: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+}
+
+.card-verificacion p {
+    font-size: 1.05rem;
+    color: #42547c;
+    margin-bottom: 1.1rem;
+    line-height: 1.35;
+}
+
+.card-verificacion input[type="text"] {
+    padding: 13px 16px;
+    width: 92%;
+    max-width: 260px;
+    min-width: 120px;
+    font-size: 1.1rem;
+    border: 1.3px solid #d4dcea;
+    border-radius: 9px;
+    margin-bottom: 1.1rem;
+    background: #f4f8fd;
+    transition: border-color 0.2s;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+}
+
+.card-verificacion input[type="text"]:focus {
+    border-color: #42a5f5;
+    background: #eaf6ff;
+    outline: none;
+}
+
+.card-verificacion button {
+    background: linear-gradient(90deg, #1a73e8, #1976d2 80%);
+    color: #fff;
+    border: none;
+    font-size: 1.14rem;
+    padding: 13px 0;
+    width: 90%;
+    max-width: 200px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    margin: 0 auto 0.5rem auto;
+    box-shadow: 0 4px 18px 0 rgba(42,125,251,0.15);
+    display: block;
+    letter-spacing: 0.01em;
+    transition: background 0.22s, transform 0.10s, box-shadow 0.15s;
+}
+
+.card-verificacion button:hover, 
+.card-verificacion button:focus {
+    background: linear-gradient(90deg, #0051a8, #2995ff 100%);
+    transform: scale(1.035);
+    box-shadow: 0 8px 24px 0 rgba(42,125,251,0.21);
+    outline: none;
+}
+
+
+.alert {
+    margin: 1rem 0 .7rem 0;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #ffeded;
+    color: #c72a2a;
+    font-weight: bold;
+    border: 1.2px solid #ffbaba;
+    font-size: 1rem;
+}
+
+.nota {
+    font-size: 0.93rem;
+    color: #2d8eff;
+    margin-top: 1.3rem;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+}
+
+.icon-lock {
+    font-size: 1.22em;
+}
+.icon-clock {
+    font-size: 1.05em;
+    margin-right: .2em;
+}

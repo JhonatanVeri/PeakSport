@@ -1,0 +1,92 @@
+/* Fondo general */
+body {
+    font-family: "Segoe UI", sans-serif;
+    background: linear-gradient(135deg, #e0f2ff, #f4f6f9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+/* Contenedor */
+.contenedor-mfa {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* Tarjeta principal */
+.card-verificacion {
+    background-color: #ffffff;
+    padding: 2.5rem 2rem;
+    border-radius: 20px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    max-width: 420px;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+/* Encabezado */
+.card-verificacion h2 {
+    margin-bottom: 1.2rem;
+    font-size: 1.8rem;
+    color: #333;
+}
+
+/* Texto general */
+.card-verificacion p {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+/* Input */
+.card-verificacion input[type="text"] {
+    padding: 12px 15px;
+    width: 100%;
+    font-size: 17px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    transition: border-color 0.2s ease;
+}
+
+.card-verificacion input[type="text"]:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Botón */
+.card-verificacion button {
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.3s ease;
+}
+
+.card-verificacion button:hover {
+    background: linear-gradient(90deg, #0056b3, #003d80);
+}
+
+/* Mensajes flash */
+.alert {
+    margin: 1rem 0;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #ffe0e0;
+    color: #a10000;
+    font-weight: bold;
+}
+
+/* Nota informativa */
+.nota {
+    font-size: 0.85rem;
+    color: #777;
+    margin-top: 1rem;
+}

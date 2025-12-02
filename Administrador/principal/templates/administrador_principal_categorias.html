@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Categorías - PeakSport</title>
+
+  <!-- Tailwind (dev) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <!-- Fuente -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- CSS base admin -->
+  <link rel="stylesheet"
+        href="{{ url_for('administrador_principal.static', filename='css/administrador_principal.css') }}">
+  <!-- CSS específico -->
+  <link rel="stylesheet"
+        href="{{ url_for('administrador_principal.static', filename='css/administrador_principal_categorias.css') }}">
+
+  <link rel="icon" href="{{ url_for('static', filename='img/logo_PeakSport.ico') }}" type="image/x-icon">
+</head>
+<body class="bg-gray-50 min-h-screen font-inter">
+
+  <!-- Sidebar -->
+  <aside class="fixed left-0 top-0 h-full w-64 sidebar-gradient shadow-2xl z-40">
+    <div class="p-6">
+      <!-- Logo -->
+      <div class="flex items-center space-x-3 mb-8">
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center floating-animation">
+          <i class="fas fa-boxes text-white text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-white">PeakSport</h1>
+          <p class="text-white/70 text-sm">Gestión de Almacén</p>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="space-y-2">
+        <a href="{{ url_for('administrador_principal.vista_listado_productos') }}"
+           class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
+          <i class="fas fa-warehouse w-5"></i>
+          <span class="font-medium">Inventario</span>
+        </a>
+        <a href="{{ url_for('administrador_principal.vista_nuevo_producto') }}"
+           class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
+          <i class="fas fa-plus-circle w-5"></i>
+          <span class="font-medium">Agregar Producto</span>
+        </a>
+        <a href="{{ url_for('administrador_principal.vista_categorias') }}"
+           class="sidebar-item active flex items-center space-x-3 px-4 py-3 rounded-lg text-white">
+          <i class="fas fa-tags w-5"></i>
+          <span class="font-medium">Categorías</span>
+        </a>
+        <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
+          <i class="fas fa-truck w-5"></i>
+          <span class="font-medium">Pedidos</span>
+        </a>
+        <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
+          <i class="fas fa-cog w-5"></i>
+          <span class="font-medium">Configuración</span>
+        </a>
+      </nav>
+
+      <!-- User -->
+      <div class="absolute bottom-6 left-6 right-6">
+        <div class="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
+          <div class="flex items-center space-x-3">
+            <img src="https://i.pravatar.cc/40?seed=admin" alt="Admin"
+                 class="w-10 h-10 rounded-full border-2 border-white/30">
+            <div>
+              <p class="text-white font-medium text-sm">
+                {{ (session.get('usuario') or {}).get('nombre_completo', 'Administrador') }}
+              </p>
+              <p class="text-white/70 text-xs">Administrador</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="ml-64 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200 px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Categorías</h1>
+          <p class="text-gray-600 mt-1">Crea y organiza categorías y subcategorías</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="btnNuevaCategoria"
+                  class="bg-gradient-to-r from-red-600 to-black text-white px-6 py-3 rounded-xl hover:scale-105 transition-all font-medium shadow-lg">
+            <i class="fas fa-plus mr-2"></i> Nueva categoría
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Filtros -->
+    <section class="px-8 mt-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div class="flex flex-col md:flex-row md:items-center gap-4">
+          <div class="relative flex-1 max-w-md">
+            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            <input id="txtSearch" type="text" placeholder="Buscar por nombre o slug..."
+                   class="search-input w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:border-purple-500 transition-all">
+          </div>
+          <div>
+            <select id="selPadreFiltro" class="px-4 py-2 border border-gray-200 rounded-lg focus:border-purple-500">
+              <option value="">(Todas) Solo raíces</option>
+            </select>
+          </div>
+          <div>
+            <select id="selOrden" class="px-4 py-2 border border-gray-200 rounded-lg focus:border-purple-500">
+              <option value="nombre">Ordenar por nombre</option>
+              <option value="fecha">Ordenar por fecha</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabla -->
+    <section class="px-8 py-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">Listado de Categorías</h3>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
+                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Slug</th>
+                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Padre</th>
+                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaCategorias" class="bg-white divide-y divide-gray-200">
+              <!-- filas por JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div class="flex items-center justify-between">
+            <div class="text-sm text-gray-700" id="lblResumen"></div>
+            <div class="flex items-center space-x-2" id="paginacion"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Crear/Editar -->
+  <div id="modalCategoria" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl w-full max-w-xl p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="modalTitulo" class="text-xl font-semibold">Nueva categoría</h3>
+        <button id="btnCerrarModal" class="text-gray-500 hover:text-gray-800">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4">
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Nombre *</label>
+          <input id="inpNombre" type="text" class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring focus:ring-purple-200" placeholder="Ej. Zapatillas">
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Slug</label>
+          <input id="inpSlug" type="text" class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring focus:ring-purple-200" placeholder="zapatillas">
+          <p class="text-xs text-gray-500 mt-1">Se autogenera desde el nombre (puedes editarlo).</p>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Descripción</label>
+          <textarea id="txtDescripcion" rows="3" class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring focus:ring-purple-200" placeholder="Descripción..."></textarea>
+        </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">Padre (opcional)</label>
+          <select id="selPadre" class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring focus:ring-purple-200">
+            <option value="">(Sin padre) — raíz</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-6 flex items-center justify-end gap-3">
+        <button id="btnCancelar" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Cancelar</button>
+        <button id="btnGuardar" class="px-5 py-2 rounded-lg bg-gray-900 text-white hover:opacity-90">
+          <i class="fas fa-save mr-2"></i> Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notificación -->
+  <div id="notification" class="fixed top-6 right-6 bg-white text-gray-900 px-6 py-4 rounded-2xl shadow-2xl transform translate-x-full transition-all duration-500 z-50 border border-gray-200">
+    <div class="flex items-center space-x-3">
+      <div id="notificationIcon" class="w-10 h-10 rounded-full flex items-center justify-center">
+        <i class="fas fa-check text-white"></i>
+      </div>
+      <div>
+        <div class="font-bold" id="notificationTitle">Notificación</div>
+        <div class="text-gray-600 text-sm" id="notificationMessage">Mensaje</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Endpoints -->
+  <script>
+    window.__ADMIN_ENDPOINTS__ = {
+      apiListarCategorias: "{{ url_for('administrador_principal.api_listar_categorias') }}",
+      apiCrearCategoria:  "{{ url_for('administrador_principal.api_crear_categoria') }}",
+      apiActualizarTemplate: "{{ url_for('administrador_principal.api_actualizar_categoria', categoria_id=0) }}", // .../categorias/0
+      apiEliminarTemplate:   "{{ url_for('administrador_principal.api_eliminar_categoria', categoria_id=0) }}",   // .../categorias/0
+
+      // para navegación lateral
+      vistaCategorias: "{{ url_for('administrador_principal.vista_categorias') }}",
+      vistaProductos:  "{{ url_for('administrador_principal.vista_listado_productos') }}"
+    };
+  </script>
+
+  <!-- JS -->
+  <script src="{{ url_for('administrador_principal.static', filename='js/administrador_principal_categorias.js') }}"></script>
+</body>
+</html>

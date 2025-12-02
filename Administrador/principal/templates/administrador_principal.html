@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestión de Almacén - PeakSport</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <!-- Fuente -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- CSS propio -->
+  <link rel="stylesheet"
+        href="{{ url_for('administrador_principal.static', filename='/css/administrador_principal.css') }}">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="{{ url_for('static', filename='img/logo_PeakSport.ico') }}" type="image/x-icon">
+</head>
+<body class="bg-gray-50 min-h-screen font-inter">
+
+  <!-- Sidebar -->
+  <aside class="fixed left-0 top-0 h-full w-64 sidebar-gradient shadow-2xl z-40">
+    <div class="p-6">
+      
+      <!-- Logo -->
+      <div class="flex items-center space-x-3 mb-8">
+        <img src="{{ url_for('static', filename='img/logo_PeakSport.png') }}" 
+             alt="PeakSport Logo" 
+             class="w-12 h-12 object-contain floating-animation">
+        <div>
+          <h1 class="text-xl font-bold text-white">PeakSport</h1>
+          <p class="text-white/70 text-sm">Gestión de Almacén</p>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="space-y-2">
+        <a href="{{ url_for('administrador_principal.vista_listado_productos') }}"
+           class="sidebar-item active flex items-center space-x-3 px-4 py-3 rounded-lg text-white">
+          <i class="fas fa-warehouse w-5"></i>
+          <span class="font-medium">Inventario</span>
+        </a>
+        <a href="{{ url_for('administrador_principal.vista_nuevo_producto') }}"
+           class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
+          <i class="fas fa-plus-circle w-5"></i>
+          <span class="font-medium">Agregar Producto</span>
+        </a>
+        <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
+          <i class="fas fa-truck w-5"></i>
+          <span class="font-medium">Pedidos</span>
+        </a>
+        <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
+          <i class="fas fa-chart-bar w-5"></i>
+          <span class="font-medium">Reportes</span>
+        </a>
+        <a href="{{ url_for('administrador_principal.vista_categorias') }}" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
+          <i class="fas fa-tags w-5"></i>
+          <span class="font-medium">Categorías</span>
+        </a>
+        <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
+          <i class="fas fa-users w-5"></i>
+          <span class="font-medium">Proveedores</span>
+        </a>
+        <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
+          <i class="fas fa-cog w-5"></i>
+          <span class="font-medium">Configuración</span>
+        </a>
+      </nav>
+
+      <!-- User Profile -->
+      <div class="absolute bottom-6 left-6 right-6">
+        <div class="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
+          <div class="flex items-center space-x-3">
+            <img src="{{ url_for('static', filename='img/avatar_peaksport.png') }}" alt="Admin"
+                 class="w-10 h-10 rounded-full border-2 border-white/30">
+            <div>
+              <p class="text-white font-medium text-sm">
+                {{ (session.get('usuario') or {}).get('nombre_completo', 'Administrador') }}
+              </p>
+              <p class="text-white/70 text-xs">Administrador</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="ml-64 min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200 px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Inventario de Productos</h1>
+          <p class="text-gray-600 mt-1">Gestiona y controla el stock de tu almacén</p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button id="btnNotificaciones"
+                  class="relative p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all">
+            <i class="fas fa-bell text-xl"></i>
+            <span id="badgeNotif"
+                  class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-1 rounded-full min-w-[20px] text-center font-bold">0</span>
+          </button>
+          <a href="{{ url_for('administrador_principal.vista_nuevo_producto') }}"
+             class="bg-gradient-to-r from-red-600 to-black text-white px-6 py-3 rounded-xl hover:scale-105 transition-all font-medium shadow-lg">
+            <i class="fas fa-plus mr-2"></i>
+            Nuevo Producto
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- KPIs -->
+    <section class="px-8 py-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" id="kpiGrid">
+        <!-- Se cargan por JS -->
+      </div>
+    </section>
+
+    <!-- Filtros -->
+    <section class="px-8 mb-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <!-- Search -->
+          <div class="flex-1 max-w-md">
+            <div class="relative">
+              <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+              <input id="txtSearch" type="text" placeholder="Buscar productos..."
+                     class="search-input w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:border-purple-500 transition-all">
+            </div>
+          </div>
+          <!-- Filters -->
+          <div class="flex flex-wrap items-center gap-3">
+            <button data-filter="all" class="filter-btn filter-active px-4 py-2 rounded-lg font-medium transition-all">
+              Todos
+            </button>
+            <button data-filter="in-stock" class="filter-btn px-4 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-all">
+              En Stock
+            </button>
+            <button data-filter="low-stock" class="filter-btn px-4 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-all">
+              Stock Bajo
+            </button>
+            <button data-filter="out-stock" class="filter-btn px-4 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition-all">
+              Sin Stock
+            </button>
+
+            <!-- Categorías -->
+            <select id="selCategoria" class="px-4 py-2 border border-gray-200 rounded-lg focus:border-purple-500 transition-all">
+              <option value="">Todas las categorías</option>
+            </select>
+
+            <!-- Orden -->
+            <select id="selOrden" class="px-4 py-2 border border-gray-200 rounded-lg focus:border-purple-500 transition-all">
+              <option value="nombre">Ordenar por nombre</option>
+              <option value="stock">Ordenar por stock</option>
+              <option value="precio">Ordenar por precio</option>
+              <option value="fecha">Ordenar por fecha</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabla -->
+    <section class="px-8 pb-8">
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-900">Lista de Productos</h3>
+            <div class="flex items-center space-x-3">
+              <button id="btnExport" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all">
+                <i class="fas fa-download mr-2"></i> Exportar
+              </button>
+              <button id="btnToggleView" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all">
+                <i class="fas fa-th-large mr-2"></i> Vista
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <input type="checkbox" class="rounded border-gray-300">
+                </th>
+                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
+                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
+                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200" id="productsTableBody">
+              <!-- filas renderizadas por JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div class="flex items-center justify-between">
+            <div class="text-sm text-gray-700" id="lblResumen">
+              <!-- texto renderizado por JS -->
+            </div>
+            <div class="flex items-center space-x-2" id="paginacion">
+              <!-- botones renderizados por JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Container para eliminar -->
+  <div id="modalEliminar" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4" style="display: none;">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 modal-content">
+      <!-- El contenido se cargará aquí dinámicamente -->
+    </div>
+  </div>
+
+  <!-- Modal Container para detalles -->
+  <div id="modalDetalles" class="fixed inset-0 bg-black/75 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4" style="display: none;">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <!-- Header -->
+      <div class="sticky top-0 bg-gradient-to-r from-red-500 to-red-600 px-6 py-4 flex items-center justify-between">
+        <h2 class="text-2xl font-bold text-white">Detalles del Producto</h2>
+        <button onclick="cerrarModalDetalles()" class="text-white hover:bg-white/20 p-2 rounded-lg transition">
+          <i class="fas fa-times text-2xl"></i>
+        </button>
+      </div>
+
+      <!-- Contenido -->
+      <div class="p-6 modal-content">
+        <!-- El contenido se cargará aquí dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Notificación -->
+  <div id="notification" class="fixed top-6 right-6 bg-white text-gray-900 px-6 py-4 rounded-2xl shadow-2xl transform translate-x-full transition-all duration-500 z-[10000] border border-gray-200">
+    <div class="flex items-center space-x-3">
+      <div id="notificationIcon" class="w-10 h-10 rounded-full flex items-center justify-center">
+        <i class="fas fa-check text-white"></i>
+      </div>
+      <div>
+        <div class="font-bold" id="notificationTitle">Notificación</div>
+        <div class="text-gray-600 text-sm" id="notificationMessage">Mensaje</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Endpoints -->
+  <!-- Endpoints (siempre antes del JS principal) -->
+<script>
+  window.ADMIN_ENDPOINTS = {
+    apiListar: "{{ url_for('administrador_principal.api_listar_productos') }}",
+    apiEliminarTemplate: "{{ url_for('administrador_principal.api_eliminar_producto', producto_id=0) }}",
+    vistaEditarTemplate: "{{ url_for('administrador_principal.vista_editar_producto', producto_id=0) }}",
+    vistaEliminarTemplate: "{{ url_for('administrador_principal.vista_eliminar_producto', producto_id=0) }}",
+    vistaNuevo: "{{ url_for('administrador_principal.vista_nuevo_producto') }}"
+  };
+</script>
+
+<!-- Fallback JSON (opcional, pero recomendado) -->
+<script id="admin-endpoints-json" type="application/json">
+  {
+    "apiListar": "{{ url_for('administrador_principal.api_listar_productos') }}",
+    "apiEliminarTemplate": "{{ url_for('administrador_principal.api_eliminar_producto', producto_id=0) }}",
+    "vistaEditarTemplate": "{{ url_for('administrador_principal.vista_editar_producto', producto_id=0) }}",
+    "vistaEliminarTemplate": "{{ url_for('administrador_principal.vista_eliminar_producto', producto_id=0) }}",
+    "vistaNuevo": "{{ url_for('administrador_principal.vista_nuevo_producto') }}"
+  }
+</script>
+
+<!-- Tu JS principal (después de endpoints) -->
+<script src="{{ url_for('administrador_principal.static', filename='js/administrador_principal.js') }}" defer></script>
+  
+  <!-- JS propio -->
+  <script src="{{ url_for('administrador_principal.static', filename='/js/administrador_principal.js') }}"></script>
+
+</body>
+</html>
+

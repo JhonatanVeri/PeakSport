@@ -1,0 +1,60 @@
+/* Fuente heredada */
+.font-inter { font-family: 'Inter', sans-serif; }
+
+/* Grid imágenes */
+.imgs-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (min-width: 480px) {
+  .imgs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 768px) {
+  .imgs-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .imgs-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+}
+
+/* Tarjeta imagen */
+.img-card {
+  display: grid;
+  grid-template-columns: 96px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px;
+}
+.img-thumb {
+  width: 96px; height: 96px;
+  border-radius: 10px; object-fit: cover; background: #f1f5f9;
+}
+.img-title { font-size: 13px; color: #111827; font-weight: 600; }
+.img-alt {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+.img-actions { display: flex; gap: 8px; align-items: center; }
+
+/* Badge portada */
+.badge-portada {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 2px 10px; border-radius: 9999px;
+  background: #e0e7ff; color: #3730a3; font-size: 12px; font-weight: 600;
+}
+
+/* Botones chicos */
+.btn-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 8px;
+  border: 1px solid #e5e7eb; background: white;
+}
+.btn-icon:hover { background: #f3f4f6; }
+.btn-danger { color: #b91c1c; }
+.btn-primary { color: #1f2937; }
+.btn-star.active { color: #f59e0b; }

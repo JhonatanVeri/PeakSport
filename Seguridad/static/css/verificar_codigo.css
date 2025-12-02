@@ -1,0 +1,159 @@
+body, .fondo-ciproba {
+    min-height: 100vh;
+    margin: 0;
+    background: linear-gradient(120deg, #e7f8eb 0%, #f4fff9 50%, #e4f5e9 100%);
+    /* Verdes institucionales, fondo muy suave */
+}
+
+.anim-fadein {
+    animation: fadeIn 1s;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(30px);}
+    to   { opacity: 1; transform: translateY(0);}
+}
+
+.anim-elevate {
+    animation: elevate 0.7s cubic-bezier(0.39, 0.575, 0.565, 1) 0.1s;
+}
+@keyframes elevate {
+    from { box-shadow: 0 4px 20px rgba(111,187,68,0.10);}
+    to   { box-shadow: 0 12px 48px 0 rgba(111,187,68,0.18);}
+}
+
+.contenedor-mfa {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: transparent;
+}
+
+/* Card principal */
+.card-verificacion {
+    background: #fff;
+    border-radius: 22px;
+    padding: 2.4rem 2rem 1.5rem 2rem;
+    box-shadow: 0 12px 46px 0 rgba(111,187,68,0.13);
+    max-width: 410px;
+    width: 100%;
+    margin: auto;
+    text-align: center;
+    border: 1.4px solid #e0eedc;
+    transition: box-shadow 0.22s;
+}
+
+/* Título */
+.card-verificacion h2 {
+    font-size: 1.7rem;
+    color: #39952b;
+    margin-bottom: 1.1rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    letter-spacing: .02em;
+}
+
+.card-verificacion p {
+    font-size: 1.07rem;
+    color: #436c28;
+    margin-bottom: 1.09rem;
+    line-height: 1.34;
+}
+
+/* Input */
+.card-verificacion input[type="text"] {
+    padding: 13px 16px;
+    width: 92%;
+    max-width: 260px;
+    min-width: 120px;
+    font-size: 1.12rem;
+    border: 1.3px solid #b3ddb0;
+    border-radius: 9px;
+    margin-bottom: 1.13rem;
+    background: #f8fff7;
+    transition: border-color 0.2s, background .18s;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
+}
+
+.card-verificacion input[type="text"]:focus {
+    border-color: #6fbb44;
+    background: #f3fff2;
+    outline: none;
+}
+
+/* Botón */
+.card-verificacion button {
+    background: linear-gradient(90deg, #6fbb44 62%, #398837 100%);
+    color: #fff;
+    border: none;
+    font-size: 1.13rem;
+    padding: 13px 0;
+    width: 90%;
+    max-width: 215px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 700;
+    margin: 0 auto 0.5rem auto;
+    box-shadow: 0 4px 18px 0 rgba(80, 160, 100, 0.15);
+    display: block;
+    letter-spacing: 0.01em;
+    transition: background 0.19s, transform 0.11s, box-shadow 0.13s;
+}
+
+.card-verificacion button:hover,
+.card-verificacion button:focus {
+    background: linear-gradient(90deg, #398837 22%, #6fbb44 99%);
+    transform: scale(1.034);
+    box-shadow: 0 8px 24px 0 rgba(80, 160, 100, 0.22);
+    outline: none;
+}
+
+/* Alerta de error */
+.alert {
+    margin: 1rem 0 .7rem 0;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #ffeaea;
+    color: #a02222;
+    font-weight: bold;
+    border: 1.3px solid #ee9d9d;
+    font-size: 1rem;
+}
+
+/* Nota inferior */
+.nota {
+    font-size: 0.96rem;
+    color: #6fbb44;
+    margin-top: 1.3rem;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+}
+
+/* Íconos */
+.icon-lock {
+    font-size: 1.22em;
+    color: #6fbb44;
+}
+.icon-clock {
+    font-size: 1.1em;
+    color: #398837;
+    margin-right: .17em;
+}
+
+/* Responsive para mobile */
+@media (max-width: 600px) {
+    .card-verificacion {
+        padding: 1.3rem .5rem 1.15rem .5rem;
+        max-width: 97vw;
+    }
+}

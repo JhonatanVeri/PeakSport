@@ -1,0 +1,103 @@
+/* Fuente */
+.font-inter { font-family: 'Inter', sans-serif; }
+
+/* Sidebar */
+.sidebar-gradient {
+  background: linear-gradient(135deg, #000000 0%, #690d13 100%);
+}
+.sidebar-item { transition: all 0.3s ease; }
+.sidebar-item:hover { background: rgba(255, 255, 255, 0.1); transform: translateX(5px); }
+.sidebar-item.active { background: rgba(255, 255, 255, 0.2); border-right: 4px solid white; }
+
+/* Animaciones */
+.card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+}
+.slide-in { animation: slideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.5s ease-in-out; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+.floating-animation { animation: floating 6s ease-in-out infinite; }
+@keyframes floating {
+  0%,100% { transform: translateY(0) }
+  50% { transform: translateY(-10px) }
+}
+
+/* Mejora visual de imágenes en tabla */
+.table-row img {
+  transition: transform 0.2s ease;
+}
+
+.table-row:hover img {
+  transform: scale(1.1);
+}
+
+/* Animaciones para modal */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animación para pulsación */
+.pulse-danger {
+  animation: pulseDanger 2s infinite;
+}
+
+@keyframes pulseDanger {
+  0%, 100% { 
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  50% { 
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+}
+
+/* Badges & estados */
+.status-badge {
+  display: inline-flex; align-items: center;
+  padding: 0.25rem 0.75rem; border-radius: 9999px;
+  font-size: 0.75rem; font-weight: 600;
+}
+.status-in-stock { background-color: #dcfce7; color: #166534; }
+.status-low-stock { background-color: #fef3c7; color: #92400e; }
+.status-out-stock { background-color: #fee2e2; color: #991b1b; }
+
+/* Inputs/filtros */
+.search-input:focus {
+  outline: none; border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.filter-active { background: linear-gradient(135deg, #000000 0%, #ff0011 100%); color: white !important; }
+
+/* Tabla/progreso */
+.table-row:hover { background-color: #f8fafc; }
+.progress-bar { background-color: #e5e7eb; height: 8px; border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
+.progress-high { background: linear-gradient(90deg, #10b981 0%, #059669 100%); }
+.progress-medium { background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%); }
+.progress-low { background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%); }

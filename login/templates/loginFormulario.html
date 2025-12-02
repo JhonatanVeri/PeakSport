@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PeakSport - Acceso</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Image Icon  -->
+  <link rel="icon" href="{{ url_for('static', filename='img/logo_PeakSport.ico') }}" type="image/x-icon">
+
+  <!-- Estilos propios (sirve desde el blueprint 'login') -->
+  <link rel="stylesheet" href="{{ url_for('login.static', filename='css/loginFormulario.css') }}">
+</head>
+<body class="relative">
+  <!-- Fondo con degradado de rojo vino a negro -->
+  <div class="fixed inset-0 -z-20 bg-gradient-to-br from-red-700 via-red-900 to-black"></div>
+  
+  <!-- Patrón de malla decorativa en el fondo -->
+  <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+    <svg class="absolute w-full h-full" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="diamond-pattern" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+          <path d="M25 0 L50 25 L25 50 L0 25 Z" 
+                fill="none" 
+                stroke="rgba(255, 255, 255, 0.1)" 
+                stroke-width="1"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#diamond-pattern)"/>
+    </svg>
+  </div>
+
+  <!-- HEADER -->
+  <header class="absolute top-0 w-full z-50">
+    <div class="bg-stone-100 bg-opacity-95 backdrop-blur-sm border-b border-stone-200 py-4">
+      <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+        <!-- Logo -->
+        <a href="#" class="flex items-center" onclick="goHome()">
+          <div class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center floating-animation mr-3 ">
+            <img src="{{ url_for('static', filename='img/logo_PeakSport.png') }}" alt="No Found">
+          </div>
+          <span class="text-2xl font-bold text-black tracking-wider">PEAKSPORT</span>
+        </a>
+
+        <!-- Back -->
+        <button onclick="goHome()" class="text-gray-700 hover:text-red-600 transition-colors uppercase font-semibold tracking-wide">
+          ← VOLVER A INICIO
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="min-h-screen flex items-center justify-center p-4 pt-32">
+    <div class="max-w-md w-full">
+
+      <div class="form-container rounded-2xl shadow-2xl p-8 relative overflow-hidden animate-fade-in">
+        <!-- Silueta decorativa -->
+        <div class="athlete-silhouette absolute top-6 right-6 opacity-10">
+          <svg class="w-32 h-32" viewBox="0 0 200 200" fill="none">
+            <g transform="translate(50, 30)">
+              <circle cx="50" cy="20" r="15" fill="#dc2626"/>
+              <rect x="42" y="35" width="16" height="50" rx="8" fill="#dc2626"/>
+              <rect x="25" y="45" width="12" height="35" rx="6" fill="#dc2626" transform="rotate(-25 31 62)"/>
+              <rect x="63" y="45" width="12" height="35" rx="6" fill="#dc2626" transform="rotate(25 69 62)"/>
+              <rect x="35" y="85" width="10" height="40" rx="5" fill="#dc2626" transform="rotate(-15 40 105)"/>
+              <rect x="55" y="85" width="10" height="40" rx="5" fill="#dc2626" transform="rotate(15 60 105)"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Título -->
+        <div class="text-center mb-8 relative z-10">
+          <h1 class="text-3xl font-black text-black mb-2 uppercase tracking-wider">Bienvenido</h1>
+          <p class="text-gray-600 uppercase font-medium">Accede a tu cuenta PeakSport</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex mb-8 bg-gray-100 rounded-lg p-1">
+          <button id="login-tab" class="flex-1 py-3 px-4 rounded-md font-bold text-sm uppercase tracking-wide transition-all tab-active" onclick="switchTab('login')">
+            Iniciar Sesión
+          </button>
+          <button id="register-tab" class="flex-1 py-3 px-4 rounded-md font-bold text-sm uppercase tracking-wide transition-all tab-inactive" onclick="switchTab('register')">
+            Registrarse
+          </button>
+        </div>
+
+        <!-- ALERT GLOBAL (Login/Registro) -->
+        <div id="global-alert" class="hidden mb-4 rounded-lg px-4 py-3 text-sm font-semibold"></div>
+
+        <!-- FORM LOGIN -->
+        <form id="login-form" class="animate-slide-in" onsubmit="handleLogin(event)">
+          <div class="space-y-6">
+            <!-- Añadimos ids para JS -->
+            <input id="login-email" type="email" placeholder="Correo electrónico" required class="input-field w-full px-4 py-3 rounded-lg focus:outline-none font-medium">
+            <div class="relative">
+              <input id="login-password" type="password" placeholder="Contraseña" required class="input-field w-full px-4 py-3 rounded-lg focus:outline-none font-medium">
+              <!-- toggle mostrar contraseña -->
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" onclick="togglePassword('login-password', this)">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <label class="flex items-center">
+                <input id="remember-me" type="checkbox" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
+                <span class="ml-2 text-sm text-gray-600 uppercase font-medium">Recordarme</span>
+              </label>
+              <a href="#" onclick="showForgotPassword()" class="text-sm text-red-600 hover:text-red-700 font-bold uppercase tracking-wide">
+                ¿Olvidaste tu contraseña?
+              </a>
+            </div>
+
+            <button id="login-submit" type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-bold text-lg shadow-lg flex items-center justify-center gap-2">
+              <span>Ingresar</span>
+              <span id="login-spinner" class="hidden border-2 border-white/60 border-t-transparent rounded-full w-5 h-5 animate-spin"></span>
+            </button>
+
+            <!-- Error inline específico del login -->
+            <div id="login-error" class="hidden text-red-600 text-sm font-semibold mt-2"></div>
+          </div>
+        </form>
+
+        <!-- FORM REGISTRO -->
+        <form id="register-form" class="hidden animate-slide-in" onsubmit="handleRegister(event)">
+          <div class="space-y-6">
+            <input id="reg-name" type="text" placeholder="Nombre completo" required class="input-field w-full px-4 py-3 rounded-lg focus:outline-none font-medium">
+            <input id="reg-email" type="email" placeholder="Correo electrónico" required class="input-field w-full px-4 py-3 rounded-lg focus:outline-none font-medium">
+
+            <!-- Fecha nacimiento con placeholder -->
+            <input 
+              type="text"
+              id="birthdate"
+              name="birthdate"
+              placeholder="Fecha de nacimiento"
+              required
+              class="input-field w-full px-4 py-3 rounded-lg focus:outline-none font-medium"
+              onfocus="this.type='date'"
+              onblur="if(!this.value)this.type='text'">
+            <div id="birthdate-error" class="mt-1 text-xs text-red-600 hidden"></div>
+
+            <div class="relative">
+              <input id="register-password" type="password" placeholder="Contraseña" required class="input-field w-full px-4 py-3 rounded-lg focus:outline-none font-medium" oninput="checkPasswordStrength(this.value)">
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" onclick="togglePassword('register-password', this)">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+
+            <div class="mt-2">
+              <div class="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Seguridad de la contraseña</span>
+                <span id="strength-text">Débil</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-1">
+                <div id="strength-bar" class="strength-indicator strength-weak"></div>
+              </div>
+            </div>
+
+            <div class="relative">
+              <input id="confirm-password" type="password" placeholder="Confirmar contraseña" required class="input-field w-full px-4 py-3 rounded-lg focus:outline-none font-medium" oninput="checkPasswordMatch()">
+              <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500" onclick="togglePassword('confirm-password', this)">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+            <div id="password-match" class="mt-1 text-xs hidden"></div>
+
+            <label class="flex items-start">
+              <input id="terms" type="checkbox" required class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500 mt-1">
+              <span class="ml-2 text-sm text-gray-600 uppercase font-medium">
+                Acepto los <a href="#" class="text-red-600 hover:text-red-700 font-bold">Términos y condiciones</a> y la <a href="#" class="text-red-600 hover:text-red-700 font-bold">Política de privacidad</a>
+              </span>
+            </label>
+
+            <button id="register-submit" type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-bold text-lg shadow-lg flex items-center justify-center gap-2">
+              <span>Crear cuenta</span>
+              <span id="register-spinner" class="hidden border-2 border-white/60 border-t-transparent rounded-full w-5 h-5 animate-spin"></span>
+            </button>
+
+            <div id="register-error" class="hidden text-red-600 text-sm font-semibold mt-2"></div>
+            <div id="register-success" class="hidden text-green-600 text-sm font-semibold mt-2"></div>
+          </div>
+        </form>
+
+        <!-- FOOTER -->
+        <div class="text-center mt-8 text-black">
+          <p class="text-sm uppercase font-medium">
+            ¿Necesitas ayuda?
+            <a href="#" onclick="showSupport()" class="text-red-500 hover:text-white font-bold ml-1">Contacta soporte</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL OLVIDAR CONTRASEÑA -->
+  <div id="forgot-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full animate-fade-in">
+      <div class="text-center mb-6">
+        <h2 class="text-2xl font-black text-black mb-2 uppercase">Recuperar contraseña</h2>
+        <p class="text-gray-600 uppercase font-medium">Te enviaremos un enlace de recuperación</p>
+      </div>
+      <form onsubmit="handleForgotPassword(event)">
+        <div class="mb-6">
+          <input id="forgot-email" type="email" required class="input-field w-full px-4 py-3 rounded-lg focus:outline-none font-medium" placeholder="Correo electrónico">
+        </div>
+        <div class="flex gap-4">
+          <button type="button" onclick="closeForgotModal()" class="flex-1 py-3 px-4 border-2 border-gray-300 text-gray-700 rounded-lg font-bold uppercase hover:bg-gray-50 transition-colors">Cancelar</button>
+          <button type="submit" class="flex-1 btn-primary text-white py-3 px-4 rounded-lg font-bold uppercase">Enviar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="{{ url_for('login.static', filename='js/loginFormulario.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap');
+
+/* ========================
+   ESTILOS GENERALES
+======================== */
+* {
+    font-family: 'Oswald', sans-serif;
+    box-sizing: border-box;
+}
+
+body.login-bg {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #c70303, #222);
+    background-size: cover;
+    background-position: center;
+}
+
+/* ========================
+   CONTENEDOR FORMULARIOS
+======================== */
+.form-container {
+    background-color: #f8f9f4; /* Blanco hueso */
+    border-radius: 1rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    animation: fade-in 0.5s ease-in-out;
+}
+
+/* Animación Fade */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ========================
+   TABS LOGIN / REGISTRO
+======================== */
+.tab-active {
+    background-color: #000;
+    color: #fff;
+}
+
+.tab-inactive {
+    background-color: #e5e7eb;
+    color: #000;
+}
+
+/* ========================
+   BOTONES
+======================== */
+.btn-primary {
+    background-color: #ef4444;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+button:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* ========================
+   INPUTS
+======================== */
+.input-field {
+    border: 1px solid #d1d5db;
+    transition: all 0.2s ease;
+}
+
+.input-field:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+}
+
+/* ========================
+   CONTRASEÑA SEGURA
+======================== */
+.strength-indicator {
+    height: 4px;
+    border-radius: 9999px;
+    transition: all 0.3s ease;
+}
+
+.strength-weak {
+    width: 33%;
+    background-color: #ef4444; /* rojo */
+}
+
+.strength-medium {
+    width: 66%;
+    background-color: #f59e0b; /* amarillo */
+}
+
+.strength-strong {
+    width: 100%;
+    background-color: #10b981; /* verde */
+}
+
+/* ========================
+   MENSAJES DE ERROR / INFO
+======================== */
+#password-match {
+    font-weight: 600;
+}
+
+#birthdate-error {
+    font-size: 0.875rem;
+    color: #dc2626; /* rojo */
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* ========================
+   ANIMACIÓN SLIDE-IN
+======================== */
+.animate-slide-in {
+    animation: slide-in 0.4s ease-in-out;
+}
+.card {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s ease-in-out;
+}
+
+.card.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* En tu loginFormulario.css, añade: */
+.btn-primary[aria-busy="true"] {
+  opacity: .85;
+  pointer-events: none;
+}
+
+.floating-animation {
+  animation: floating 6s ease-in-out infinite;
+}
+
+@keyframes floating {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-20px); }
+}
+
+
+@keyframes slide-in {
+    from {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

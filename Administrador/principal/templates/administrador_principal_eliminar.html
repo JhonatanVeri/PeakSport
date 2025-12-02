@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Eliminar Producto - PeakSport</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <!-- Fuente -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- CSS base -->
+  <link rel="stylesheet"
+        href="{{ url_for('administrador_principal.static', filename='/css/administrador_principal.css') }}">
+
+  <!-- CSS específico de eliminar -->
+  <link rel="stylesheet"
+        href="{{ url_for('administrador_principal.static', filename='/css/administrador_principal_eliminar.css') }}">
+
+  <link rel="icon" href="{{ url_for('static', filename='img/logo_PeakSport.ico') }}" type="image/x-icon">
+</head>
+<body class="font-inter">
+  
+  <!-- Modal Overlay -->
+  <div class="modal-overlay">
+    
+    <!-- Modal Card -->
+    <div class="modal-card p-8">
+      
+      <!-- Botón cerrar (opcional) -->
+      <button class="btn-close" onclick="window.history.back();" title="Cerrar">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <!-- Header -->
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 pulse-danger">
+          <i class="fas fa-trash text-red-600 text-2xl"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Eliminar este producto</h2>
+        <p class="text-gray-600">¿Estás seguro de que quieres eliminar este producto del inventario?</p>
+      </div>
+
+      <!-- Product Info -->
+      <div class="bg-gray-50 rounded-xl p-4 mb-6">
+        <div class="flex items-center space-x-4">
+          <!-- Product Image -->
+          <div class="w-16 h-16 bg-gradient-danger rounded-lg flex items-center justify-center flex-shrink-0">
+            {% if producto.imagen_portada %}
+              <img src="{{ producto.imagen_portada }}" 
+                  alt="{{ producto.nombre }}" 
+                  class="w-full h-full object-cover rounded-lg">
+            {% else %}
+              <i class="fas fa-box text-white text-2xl"></i>
+            {% endif %}
+
+            
+          </div>
+
+          <!-- Product Details -->
+          <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-gray-900 truncate">{{ producto.nombre }}</h3>
+            <p class="text-sm text-gray-600 mt-1">SKU: {{ producto.slug }}</p>
+            <p class="text-sm font-medium text-gray-900 mt-1">
+              {{ (producto.precio_centavos / 100) | round(2) }} {{ producto.moneda }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Warning Message -->
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+        <div class="flex items-start">
+          <i class="fas fa-exclamation-triangle text-red-500 mr-3 mt-0.5"></i>
+          <div class="text-sm">
+            <p class="text-red-800 font-medium">Esta acción no se puede deshacer</p>
+            <p class="text-red-700 mt-1">El producto será eliminado permanentemente del inventario junto con todas sus imágenes.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex space-x-4">
+        <button id="btnRechazar" 
+                class="flex-1 px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all font-medium">
+          <i class="fas fa-times mr-2"></i> Cancelar
+        </button>
+        <button id="btnConfirmar" 
+                class="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all font-medium shadow-lg">
+          <i class="fas fa-check mr-2"></i> Confirmar
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Notification -->
+  <div id="notification" class="fixed top-6 right-6 bg-white text-gray-900 px-6 py-4 rounded-xl shadow-lg transform translate-x-full transition-all duration-300 z-[10000]">
+    <div class="flex items-center space-x-3">
+      <div id="notificationIcon" class="w-8 h-8 rounded-full flex items-center justify-center">
+        <i class="fas fa-check text-white text-sm"></i>
+      </div>
+      <div>
+        <div class="font-medium text-sm" id="notificationTitle">Notificación</div>
+        <div class="text-gray-600 text-xs" id="notificationMessage">Mensaje</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Endpoints -->
+  <script>
+    window.__PRODUCTO_ID__ = {{ producto.id }};
+    window.__ADMIN_ENDPOINTS__ = {
+      apiEliminar: "{{ url_for('administrador_principal.api_eliminar_producto', producto_id=producto.id) }}",
+      vistaListado: "{{ url_for('administrador_principal.vista_listado_productos') }}"
+    };
+  </script>
+
+  <!-- JS específico -->
+  <script src="{{ url_for('administrador_principal.static', filename='/js/administrador_principal_eliminar.js') }}"></script>
+</body>
+
+</html>

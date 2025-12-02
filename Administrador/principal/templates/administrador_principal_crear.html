@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Crear Producto - PeakSport</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <!-- Fuente -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- CSS base de admin -->
+  <link rel="stylesheet"
+        href="{{ url_for('administrador_principal.static', filename='css/administrador_principal.css') }}">
+
+  <link rel="icon" href="{{ url_for('static', filename='img/logo_PeakSport.ico') }}" type="image/x-icon">
+</head>
+<body class="bg-gray-50 min-h-screen font-inter">
+
+  <!-- Sidebar -->
+  <aside class="fixed left-0 top-0 h-full w-64 sidebar-gradient shadow-2xl z-40">
+    <div class="p-6">
+      <div class="flex items-center space-x-3 mb-8">
+        <img src="{{ url_for('static', filename='img/logo_PeakSport.png') }}" 
+            alt="PeakSport Logo" 
+            class="w-12 h-12 object-contain floating-animation">
+        <div>
+          <h1 class="text-xl font-bold text-white">PeakSport</h1>
+          <p class="text-white/70 text-sm">Gestión de Almacén</p>
+        </div>
+      </div>
+      
+
+      <nav class="space-y-2">
+        <a href="{{ url_for('administrador_principal.vista_listado_productos') }}"
+           class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
+          <i class="fas fa-warehouse w-5"></i><span class="font-medium">Inventario</span>
+        </a>
+        <a href="#" class="sidebar-item active flex items-center space-x-3 px-4 py-3 rounded-lg text-white">
+          <i class="fas fa-plus-circle w-5"></i><span class="font-medium">Agregar Producto</span>
+        </a>
+      </nav>
+
+      <div class="absolute bottom-6 left-6 right-6">
+        <div class="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
+          <div class="flex items-center space-x-3">
+            <img src="{{ url_for('static', filename='img/avatar_peaksport.png') }}" alt="Admin"
+              class="w-10 h-10 rounded-full border-2 border-white/30">
+            <div>
+              <p class="text-white font-medium text-sm">
+                {{ (session.get('usuario') or {}).get('nombre_completo', 'Administrador') }}
+              </p>
+              <p class="text-white/70 text-xs">Administrador</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="ml-64 min-h-screen">
+    <header class="bg-white shadow-sm border-b border-gray-200 px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Crear nuevo producto</h1>
+          <p class="text-gray-600 mt-1">Agrega un producto al inventario con toda la información necesaria</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="{{ url_for('administrador_principal.vista_listado_productos') }}"
+             class="px-5 py-3 rounded-xl border border-gray-200 hover:bg-gray-100 transition">
+            <i class="fas fa-arrow-left mr-2"></i> Volver al listado
+          </a>
+          
+          <button id="btnCrear"
+             class="bg-gradient-to-r from-red-600 to-black text-white px-6 py-3 rounded-xl hover:scale-105 transition-all font-medium shadow-lg">
+            <i class="fas fa-plus mr-2"></i> Crear producto
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <section class="px-8 py-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Col 1: datos -->
+        <div class="lg:col-span-2">
+          <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <h2 class="text-xl font-semibold mb-4">Información del producto</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label class="block text-sm text-gray-600 mb-1">Nombre *</label>
+                <input id="inpNombre" type="text" class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring focus:ring-purple-200" placeholder="Ej: Mochila PeakSport Pro" required>
+              </div>
+              <div>
+                <label class="block text-sm text-gray-600 mb-1">Slug</label>
+                <input id="inpSlug" type="text" class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring focus:ring-purple-200" placeholder="mochila-peaksport-pro">
+              </div>
+              <div>
+                <label class="block text-sm text-gray-600 mb-1">Precio (COP) *</label>
+                <input id="inpPrecio" type="number" min="0" step="0.01" class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring focus:ring-purple-200" placeholder="0" required>
+                <p class="text-xs text-gray-500 mt-1">Se almacena en centavos</p>
+              </div>
+              <div>
+                <label class="block text-sm text-gray-600 mb-1">Stock *</label>
+                <input id="inpStock" type="number" min="0" step="1" class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring focus:ring-purple-200" placeholder="0" required>
+                <p class="text-xs text-gray-500 mt-1">Cantidad disponible inicial</p>
+              </div>
+              <div>
+                <label class="block text-sm text-gray-600 mb-1">Moneda</label>
+                <select id="selMoneda" class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring focus:ring-purple-200">
+                  <option value="COP">COP - Peso Colombiano</option>
+                  <option value="USD">USD - Dólar Estadounidense</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm text-gray-600 mb-1">SKU</label>
+                <input id="inpSKU" type="text" class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring focus:ring-purple-200" placeholder="Código SKU (opcional)">
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-sm text-gray-600 mb-1">Descripción</label>
+                <textarea id="txtDescripcion" rows="4" class="w-full border rounded-xl px-4 py-3 focus:outline-none focus:ring focus:ring-purple-200" placeholder="Describe el producto en detalle..."></textarea>
+              </div>
+              <div class="flex items-center space-x-2 md:col-span-2">
+                <input id="chkActivo" type="checkbox" class="h-5 w-5" checked>
+                <label for="chkActivo" class="text-sm text-gray-700">Producto activo</label>
+                <span class="text-xs text-gray-500">(visible en tienda)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mt-6">
+            <h2 class="text-xl font-semibold mb-4">Categorías</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-64 overflow-auto pr-2" id="listaCategorias">
+              <p class="text-sm text-gray-500 col-span-3">Cargando categorías...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Col 2: imágenes -->
+        <div>
+          <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-semibold">Imágenes</h2>
+              <label class="px-3 py-2 rounded-lg bg-gray-900 text-white hover:opacity-90 cursor-pointer transition">
+                <input id="inpFiles" type="file" accept="image/*" multiple class="hidden">
+                <i class="fas fa-cloud-upload-alt mr-2"></i> Subir
+              </label>
+            </div>
+
+            <div id="imagenesGrid" class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center">
+              <i class="fas fa-image text-gray-300 text-4xl mb-2"></i>
+              <p class="text-gray-500 text-sm">Sube imágenes del producto aquí</p>
+            </div>
+            <p class="text-xs text-gray-500 mt-3">La primera imagen será la portada. Máximo 5 imágenes.</p>
+          </div>
+
+          <div class="bg-blue-50 rounded-2xl p-4 border border-blue-200 mt-6">
+            <h3 class="font-semibold text-blue-900 mb-2 flex items-center">
+              <i class="fas fa-info-circle mr-2"></i> Consejos
+            </h3>
+            <ul class="text-sm text-blue-800 space-y-1">
+              <li>• Usa imágenes de buena calidad (1200x1200px)</li>
+              <li>• Máximo 5 imágenes por producto</li>
+              <li>• Formato: JPG, PNG, WebP</li>
+              <li>• Tamaño máximo: 2MB por imagen</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Notificación -->
+  <div id="notification" class="fixed top-6 right-6 bg-white text-gray-900 px-6 py-4 rounded-2xl shadow-2xl transform translate-x-full transition-all duration-500 z-50 border border-gray-200">
+    <div class="flex items-center space-x-3">
+      <div id="notificationIcon" class="w-10 h-10 rounded-full flex items-center justify-center">
+        <i class="fas fa-check text-white"></i>
+      </div>
+      <div>
+        <div class="font-bold" id="notificationTitle">Notificación</div>
+        <div class="text-gray-600 text-sm" id="notificationMessage">Mensaje</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Endpoints -->
+  <script>
+    window.__ADMIN_ENDPOINTS__ = {
+      apiCrear: "{{ url_for('administrador_principal.api_crear_producto') }}",
+      apiListarCategorias: "{{ url_for('administrador_principal.api_listar_categorias') }}",
+      vistaListado: "{{ url_for('administrador_principal.vista_listado_productos') }}"
+    };
+  </script>
+
+  <!-- JS -->
+  <script src="{{ url_for('administrador_principal.static', filename='js/administrador_principal_crear.js') }}"></script>
+</body>
+</html>

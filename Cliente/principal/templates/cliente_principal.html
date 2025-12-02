@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PeakSport - Bienvenido</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #1a1a1a;
+      --bg-card: #1f1f1f;
+      --text-primary: #ffffff;
+      --text-secondary: #a1a1aa;
+      --accent-red: #ef4444;
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --accent-purple: #8b5cf6;
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
+    
+    .dark-gradient {
+      background: #000000;
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, var(--accent-red) 0%, #dc2626 100%);
+    }
+    
+    .gradient-blue {
+      background: linear-gradient(135deg, var(--accent-blue) 0%, #2563eb 100%);
+    }
+    
+    .gradient-green {
+      background: linear-gradient(135deg, var(--accent-green) 0%, #059669 100%);
+    }
+    
+    .gradient-purple {
+      background: linear-gradient(135deg, var(--accent-purple) 0%, #7c3aed 100%);
+    }
+    
+    .glass-card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    
+    .card-hover {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-8px) scale(1.01);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+    
+    .pulse-animation {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+    
+    .slide-in {
+      animation: slideIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .glow-effect {
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.3);
+    }
+    
+    .floating-animation {
+      animation: floating 6s ease-in-out infinite;
+    }
+    
+    @keyframes floating {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+    
+    .bg-pattern {
+    background: linear-gradient(to bottom right, #3c0000 15%, #000000 85%);
+  }
+
+
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    z
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .elegant-shadow {
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4), 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .subtle-glow {
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+    }
+  </style>
+</head>
+<body class="dark-gradient bg-pattern min-h-screen">
+
+  <!-- 🔝 Header -->
+  <header class="glass-card shadow-2xl fixed w-full z-50 border-b border-red-500/20">
+    <div class="max-w-7xl mx-auto flex justify-between items-center py-5 px-8">
+      <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 gradient-bg rounded-2xl flex items-center justify-center floating-animation subtle-glow">
+          <i class="fas fa-dumbbell text-white text-xl"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-300">PeakSport</h1>
+      </div>
+      
+      <nav class="hidden md:flex space-x-8">
+        <a href="#" class="flex items-center space-x-2 hover:text-red-400 transition-all duration-300 font-medium text-gray-300 hover:scale-105" onclick="navigateTo('home')">
+          <i class="fas fa-home"></i>
+          <span>Inicio</span>
+        </a>
+        <a href="#" class="flex items-center space-x-2 hover:text-red-400 transition-all duration-300 font-medium text-gray-300 hover:scale-105" onclick="navigateTo('products')">
+          <i class="fas fa-shopping-bag"></i>
+          <span>Productos</span>
+        </a>
+        <a href="#" class="flex items-center space-x-2 hover:text-red-400 transition-all duration-300 font-medium text-gray-300 hover:scale-105" onclick="navigateTo('orders')">
+          <i class="fas fa-box"></i>
+          <span>Mis pedidos</span>
+        </a>
+        <a href="#" class="flex items-center space-x-2 hover:text-red-400 transition-all duration-300 font-medium text-gray-300 hover:scale-105" onclick="navigateTo('profile')">
+          <i class="fas fa-user"></i>
+          <span>Perfil</span>
+        </a>
+      </nav>
+      
+      <div class="flex items-center space-x-4">
+        <button class="relative p-3 hover:bg-white/10 rounded-xl transition-all duration-300 group" onclick="toggleCart()">
+          <svg class="w-6 h-6 text-gray-300 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M3 3h2l.4 2M7 13h10l4-8H5.4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="9" cy="21" r="1" />
+            <circle cx="20" cy="21" r="1" />
+          </svg>
+          <span id="cartCount" class="absolute -top-1 -right-1 gradient-bg text-white text-xs px-2 py-1 rounded-full min-w-[20px] text-center font-bold elegant-shadow">2</span>
+        </button>
+        
+        <div class="flex items-center space-x-3 glass-card rounded-full px-4 py-2 hover:bg-white/10 transition-all cursor-pointer" onclick="showUserMenu()">
+          <img src="https://i.pravatar.cc/40?seed=andres" alt="avatar" class="w-10 h-10 rounded-full border-2 border-red-500 glow-effect">
+          <span class="font-medium text-sm hidden sm:block text-gray-300">{{usuario_nombre}}</span>
+          <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+        </div>
+        
+        <!-- Mobile menu button -->
+        <button class="md:hidden p-3 hover:bg-white/10 rounded-xl transition-all" onclick="toggleMobileMenu()">
+          <i class="fas fa-bars text-gray-300"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Mobile menu -->
+    <div id="mobileMenu" class="md:hidden glass-card border-t border-white/10 hidden">
+      <div class="px-6 py-4 space-y-3">
+        <a href="#" class="flex items-center space-x-3 py-3 hover:text-red-400 transition-all text-gray-300 hover:bg-white/5 rounded-lg px-3" onclick="navigateTo('home')">
+          <i class="fas fa-home w-5"></i>
+          <span>Inicio</span>
+        </a>
+        <a href="#" class="flex items-center space-x-3 py-3 hover:text-red-400 transition-all text-gray-300 hover:bg-white/5 rounded-lg px-3" onclick="navigateTo('products')">
+          <i class="fas fa-shopping-bag w-5"></i>
+          <span>Productos</span>
+        </a>
+        <a href="#" class="flex items-center space-x-3 py-3 hover:text-red-400 transition-all text-gray-300 hover:bg-white/5 rounded-lg px-3" onclick="navigateTo('orders')">
+          <i class="fas fa-box w-5"></i>
+          <span>Mis pedidos</span>
+        </a>
+        <a href="#" class="flex items-center space-x-3 py-3 hover:text-red-400 transition-all text-gray-300 hover:bg-white/5 rounded-lg px-3" onclick="navigateTo('profile')">
+          <i class="fas fa-user w-5"></i>
+          <span>Perfil</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="pt-32 max-w-7xl mx-auto px-8 pb-16">
+
+    <!-- 👋 Bienvenida -->
+    <section class="mb-16 slide-in">
+    <div class="gradient-bg rounded-3xl p-10 text-white relative overflow-hidden subtle-glow">
+        <div class="absolute top-0 right-0 w-40 h-40 bg-white bg-opacity-5 rounded-full -mr-20 -mt-20 floating-animation"></div>
+        <div class="absolute bottom-0 left-0 w-32 h-32 bg-blue-500 bg-opacity-10 rounded-full -ml-16 -mb-16 floating-animation" style="animation-delay: 2s;"></div>
+        <div class="absolute top-1/2 right-1/4 w-6 h-6 bg-yellow-400 rounded-full opacity-60 floating-animation" style="animation-delay: 4s;"></div>
+        
+        <div class="relative z-10">
+        <h2 class="text-5xl font-bold mb-4">¡Hola, <span class="text-yellow-400">{{usuario_nombre}}</span>! 👋</h2>
+        <p class="text-red-100 text-xl mb-8 font-light">
+            Bienvenido de nuevo a PeakSport. ¡Explora lo mejor del rendimiento deportivo hoy!
+        </p>
+
+        <div class="flex flex-wrap gap-6">
+            
+            <!-- 🛍️ Catálogo -->
+            <div class="glass-card rounded-xl px-6 py-3 hover:scale-105 transition-all duration-300 cursor-pointer">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-store text-green-400 text-xl"></i>
+                <div>
+                <span class="font-bold text-lg">Catálogo</span>
+                <p class="text-red-200 text-sm">Explora nuevas colecciones</p>
+                </div>
+            </div>
+            </div>
+
+            <!-- 🛒 Carrito -->
+            <div class="glass-card rounded-xl px-6 py-3 hover:scale-105 transition-all duration-300 cursor-pointer">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-shopping-cart text-yellow-400 text-xl"></i>
+                <div>
+                <span class="font-bold text-lg">Carrito</span>
+                <p class="text-red-200 text-sm">Tienes 2 artículos</p>
+                </div>
+            </div>
+            </div>
+
+            <!-- 🎽 Recomendaciones -->
+            <div class="glass-card rounded-xl px-6 py-3 hover:scale-105 transition-all duration-300 cursor-pointer">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-star text-pink-400 text-xl"></i>
+                <div>
+                <span class="font-bold text-lg">Recomendados</span>
+                <p class="text-red-200 text-sm">Podrian gustarte !!</p>
+                </div>
+            </div>
+            </div>
+
+        </div>
+        </div>
+    </div>
+    </section>
+
+
+    <!-- ⚡ Productos recomendados -->
+    <section class="mb-16">
+      <div class="flex items-center justify-between mb-10">
+        <h3 class="text-3xl font-bold text-white">Recomendados</h3>
+        <button class="gradient-bg hover:scale-105 transition-all duration-300 font-medium flex items-center space-x-2 px-6 py-3 rounded-xl text-white elegant-shadow" onclick="showAllProducts()">
+          <span>Ver todos</span>
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        
+        <div class="glass-card rounded-3xl card-hover p-7 border border-white/10 group">
+          <div class="relative mb-6 overflow-hidden rounded-xl">
+            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=300&fit=crop" class="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500" alt="Zapatillas Running">
+            <div class="absolute top-3 right-3 gradient-bg text-white px-3 py-1 rounded-full text-xs font-bold elegant-shadow">
+              -20%
+            </div>
+            <div class="absolute top-3 left-3 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+              ⚡ Popular
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </div>
+          <h4 class="font-bold text-xl mb-2 text-white group-hover:text-red-400 transition-colors">Zapatillas Running Pro</h4>
+          <p class="text-gray-400 text-sm mb-4">Nike Air Zoom • Premium</p>
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-2">
+              <span class="text-2xl font-bold text-red-400">$96.00</span>
+              <span class="text-sm text-gray-500 line-through">$120.00</span>
+            </div>
+            <div class="flex items-center space-x-1">
+              <div class="flex">
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+              </div>
+              <span class="text-sm text-gray-400 ml-2">4.8</span>
+            </div>
+          </div>
+          <button class="w-full gradient-bg text-white py-3 rounded-xl hover:scale-105 transition-all duration-300 font-medium elegant-shadow" onclick="addToCart('Zapatillas Running Pro', 96.00)">
+            <i class="fas fa-cart-plus mr-2"></i>
+            Agregar al carrito
+          </button>
+        </div>
+
+        <div class="glass-card rounded-3xl card-hover p-7 border border-white/10 group">
+          <div class="relative mb-6 overflow-hidden rounded-xl">
+            <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&h=300&fit=crop" class="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500" alt="Camiseta">
+            <div class="absolute top-3 right-3 gradient-green text-white px-3 py-1 rounded-full text-xs font-bold elegant-shadow">
+              Nuevo
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </div>
+          <h4 class="font-bold text-xl mb-2 text-white group-hover:text-green-400 transition-colors">Camiseta Dry-Fit</h4>
+          <p class="text-gray-400 text-sm mb-4">Adidas Performance • Transpirable</p>
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-2">
+              <span class="text-2xl font-bold text-green-400">$35.00</span>
+            </div>
+            <div class="flex items-center space-x-1">
+              <div class="flex">
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-gray-600 text-sm"></i>
+              </div>
+              <span class="text-sm text-gray-400 ml-2">4.6</span>
+            </div>
+          </div>
+          <button class="w-full gradient-green text-white py-3 rounded-xl hover:scale-105 transition-all duration-300 font-medium elegant-shadow" onclick="addToCart('Camiseta Dry-Fit', 35.00)">
+            <i class="fas fa-cart-plus mr-2"></i>
+            Agregar al carrito
+          </button>
+        </div>
+
+        <div class="glass-card rounded-3xl card-hover p-7 border border-white/10 group">
+          <div class="relative mb-6 overflow-hidden rounded-xl">
+            <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=300&fit=crop" class="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500" alt="Balón">
+            <div class="absolute top-3 left-3 bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+              🏆 FIFA
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </div>
+          <h4 class="font-bold text-xl mb-2 text-white group-hover:text-blue-400 transition-colors">Balón Oficial</h4>
+          <p class="text-gray-400 text-sm mb-4">FIFA Approved • Profesional</p>
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-2">
+              <span class="text-2xl font-bold text-blue-400">$50.00</span>
+            </div>
+            <div class="flex items-center space-x-1">
+              <div class="flex">
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+              </div>
+              <span class="text-sm text-gray-400 ml-2">4.9</span>
+            </div>
+          </div>
+          <button class="w-full gradient-blue text-white py-3 rounded-xl hover:scale-105 transition-all duration-300 font-medium elegant-shadow" onclick="addToCart('Balón Oficial', 50.00)">
+            <i class="fas fa-cart-plus mr-2"></i>
+            Agregar al carrito
+          </button>
+        </div>
+
+        <div class="glass-card rounded-3xl card-hover p-7 border border-white/10 group">
+          <div class="relative mb-6 overflow-hidden rounded-xl">
+            <img src="https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=300&h=300&fit=crop" class="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500" alt="Guantes">
+            <div class="absolute top-3 left-3 bg-purple-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+              💪 Pro
+            </div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </div>
+          <h4 class="font-bold text-xl mb-2 text-white group-hover:text-purple-400 transition-colors">Guantes de Gym</h4>
+          <p class="text-gray-400 text-sm mb-4">Premium Grip • Antideslizante</p>
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center space-x-2">
+              <span class="text-2xl font-bold text-purple-400">$25.00</span>
+            </div>
+            <div class="flex items-center space-x-1">
+              <div class="flex">
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-yellow-400 text-sm"></i>
+                <i class="fas fa-star text-gray-600 text-sm"></i>
+              </div>
+              <span class="text-sm text-gray-400 ml-2">4.7</span>
+            </div>
+          </div>
+          <button class="w-full gradient-purple text-white py-3 rounded-xl hover:scale-105 transition-all duration-300 font-medium elegant-shadow" onclick="addToCart('Guantes de Gym', 25.00)">
+            <i class="fas fa-cart-plus mr-2"></i>
+            Agregar al carrito
+          </button>
+        </div>
+      </div>
+    </section>
+
+
+
+  <!-- Cart Notification -->
+  <div id="cartNotification" class="fixed top-24 right-6 glass-card text-white px-6 py-4 rounded-2xl shadow-2xl transform translate-x-full transition-all duration-500 z-50 border border-green-500/30 glow-effect">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 gradient-green rounded-full flex items-center justify-center">
+        <i class="fas fa-check text-white"></i>
+      </div>
+      <div>
+        <div class="font-bold text-green-400" id="cartMessage">Producto agregado</div>
+        <div class="text-gray-400 text-sm" id="cartSubMessage">Al carrito de compras</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Menu Modal -->
+  <div id="userMenuModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="glass-card rounded-3xl p-8 max-w-md w-full border border-white/20 glow-effect">
+        <div class="text-center mb-6">
+          <img src="https://i.pravatar.cc/80?seed=andres" alt="avatar" class="w-20 h-20 rounded-full border-4 border-red-500 mx-auto mb-4 glow-effect">
+          <h3 class="text-2xl font-bold text-white">{{usuario_nombre}}</h3>
+          <p class="text-gray-400">Miembro Premium</p>
+        </div>
+        
+        <div class="space-y-3">
+          <button class="w-full glass-card rounded-xl p-4 text-left hover:bg-white/10 transition-all group" onclick="navigateTo('profile')">
+            <div class="flex items-center space-x-3">
+              <i class="fas fa-user text-red-400 group-hover:scale-110 transition-transform"></i>
+              <span class="text-white">Mi Perfil</span>
+            </div>
+          </button>
+          
+          <button class="w-full glass-card rounded-xl p-4 text-left hover:bg-white/10 transition-all group" onclick="navigateTo('settings')">
+            <div class="flex items-center space-x-3">
+              <i class="fas fa-cog text-blue-400 group-hover:scale-110 transition-transform"></i>
+              <span class="text-white">Configuración</span>
+            </div>
+          </button>
+          
+          <button class="w-full glass-card rounded-xl p-4 text-left hover:bg-white/10 transition-all group" onclick="logout()">
+            <div class="flex items-center space-x-3">
+              <i class="fas fa-sign-out-alt text-gray-400 group-hover:scale-110 transition-transform"></i>
+              <span class="text-white">Cerrar Sesión</span>
+            </div>
+          </button>
+        </div>
+        
+        <button class="w-full mt-6 gradient-bg text-white py-3 rounded-xl hover:scale-105 transition-all font-medium" onclick="closeUserMenu()">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Modal -->
+  <div id="cartModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="glass-card rounded-3xl p-8 max-w-2xl w-full border border-white/20 glow-effect max-h-[80vh] overflow-y-auto scrollbar-hide">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-3xl font-bold text-white neon-text">Carrito de Compras</h3>
+          <button class="text-gray-400 hover:text-white transition-colors" onclick="closeCart()">
+            <i class="fas fa-times text-2xl"></i>
+          </button>
+        </div>
+        
+        <div id="cartItems" class="space-y-4 mb-6">
+          <!-- Cart items will be populated here -->
+        </div>
+        
+        <div class="border-t border-white/20 pt-6">
+          <div class="flex justify-between items-center mb-4">
+            <span class="text-xl font-bold text-white">Total:</span>
+            <span class="text-3xl font-bold text-red-400 neon-text" id="cartTotal">$0.00</span>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <button class="glass-card text-white py-3 rounded-xl hover:bg-white/10 transition-all font-medium" onclick="closeCart()">
+              Seguir Comprando
+            </button>
+            <button class="gradient-bg text-white py-3 rounded-xl hover:scale-105 transition-all font-medium glow-effect" onclick="checkout()">
+              Proceder al Pago
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global state
+    let cartItems = 2;
+    let cartTotal = 206.00; // Initial total for existing items
+    let cartProducts = [
+      { name: 'Producto Demo 1', price: 89.00, quantity: 1, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&h=100&fit=crop' },
+      { name: 'Producto Demo 2', price: 117.00, quantity: 1, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&h=100&fit=crop' }
+    ];
+
+    // Cart functions
+    function addToCart(productName, price) {
+      cartItems++;
+      cartTotal += price;
+      
+      // Add to cart products array
+      const existingProduct = cartProducts.find(p => p.name === productName);
+      if (existingProduct) {
+        existingProduct.quantity++;
+      } else {
+        cartProducts.push({
+          name: productName,
+          price: price,
+          quantity: 1,
+          image: getProductImage(productName)
+        });
+      }
+      
+      // Update cart count with animation
+      const cartCount = document.getElementById('cartCount');
+      cartCount.textContent = cartItems;
+      cartCount.classList.add('pulse-animation');
+      setTimeout(() => cartCount.classList.remove('pulse-animation'), 1000);
+      
+      // Show enhanced notification
+      showNotification(productName, price);
+      
+      // Update cart display
+      updateCartDisplay();
+    }
+
+    function getProductImage(productName) {
+      const images = {
+        'Zapatillas Running Pro': 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&h=100&fit=crop',
+        'Camiseta Dry-Fit': 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=100&h=100&fit=crop',
+        'Balón Oficial': 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=100&h=100&fit=crop',
+        'Guantes de Gym': 'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=100&h=100&fit=crop'
+      };
+      return images[productName] || 'https://via.placeholder.com/100';
+    }
+
+    function showNotification(productName, price) {
+      const notification = document.getElementById('cartNotification');
+      const message = document.getElementById('cartMessage');
+      const subMessage = document.getElementById('cartSubMessage');
+      
+      message.textContent = `${productName}`;
+      subMessage.textContent = `$${price.toFixed(2)} • Agregado al carrito`;
+      
+      notification.classList.remove('translate-x-full');
+      
+      setTimeout(() => {
+        notification.classList.add('translate-x-full');
+      }, 4000);
+    }
+
+    function toggleCart() {
+      document.getElementById('cartModal').classList.remove('hidden');
+      updateCartDisplay();
+    }
+
+    function closeCart() {
+      document.getElementById('cartModal').classList.add('hidden');
+    }
+
+    function updateCartDisplay() {
+      const cartItemsContainer = document.getElementById('cartItems');
+      const cartTotalElement = document.getElementById('cartTotal');
+      
+      cartItemsContainer.innerHTML = '';
+      
+      cartProducts.forEach((product, index) => {
+        const itemElement = document.createElement('div');
+        itemElement.className = 'glass-card rounded-xl p-4 flex items-center space-x-4';
+        itemElement.innerHTML = `
+          <img src="${product.image}" alt="${product.name}" class="w-16 h-16 rounded-lg object-cover">
+          <div class="flex-1">
+            <h4 class="font-bold text-white">${product.name}</h4>
+            <p class="text-gray-400">$${product.price.toFixed(2)} c/u</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <button class="w-8 h-8 glass-card rounded-full flex items-center justify-center hover:bg-white/10 transition-all" onclick="updateQuantity(${index}, -1)">
+              <i class="fas fa-minus text-sm text-gray-400"></i>
+            </button>
+            <span class="text-white font-bold w-8 text-center">${product.quantity}</span>
+            <button class="w-8 h-8 glass-card rounded-full flex items-center justify-center hover:bg-white/10 transition-all" onclick="updateQuantity(${index}, 1)">
+              <i class="fas fa-plus text-sm text-gray-400"></i>
+            </button>
+            <button class="w-8 h-8 glass-card rounded-full flex items-center justify-center hover:bg-red-500/20 transition-all ml-4" onclick="removeFromCart(${index})">
+              <i class="fas fa-trash text-sm text-red-400"></i>
+            </button>
+          </div>
+        `;
+        cartItemsContainer.appendChild(itemElement);
+      });
+      
+      cartTotalElement.textContent = `$${cartTotal.toFixed(2)}`;
+    }
+
+    function updateQuantity(index, change) {
+      const product = cartProducts[index];
+      const newQuantity = product.quantity + change;
+      
+      if (newQuantity <= 0) {
+        removeFromCart(index);
+        return;
+      }
+      
+      cartTotal += product.price * change;
+      cartItems += change;
+      product.quantity = newQuantity;
+      
+      document.getElementById('cartCount').textContent = cartItems;
+      updateCartDisplay();
+    }
+
+    function removeFromCart(index) {
+      const product = cartProducts[index];
+      cartTotal -= product.price * product.quantity;
+      cartItems -= product.quantity;
+      cartProducts.splice(index, 1);
+      
+      document.getElementById('cartCount').textContent = cartItems;
+      updateCartDisplay();
+    }
+
+    function checkout() {
+      showAdvancedNotification('🎉 Procesando pago...', 'Redirigiendo a la pasarela de pago segura', 'success');
+      setTimeout(() => {
+        showAdvancedNotification('✅ ¡Compra exitosa!', `Total: $${cartTotal.toFixed(2)} • Gracias por tu compra`, 'success');
+      }, 2000);
+    }
+
+    // Navigation functions
+    function navigateTo(section) {
+      const sections = {
+        home: '🏠 Cargando inicio...',
+        products: '🛍️ Mostrando catálogo completo...',
+        orders: '📦 Cargando historial de pedidos...',
+        profile: '👤 Abriendo perfil de usuario...',
+        settings: '⚙️ Configuración del sistema...'
+      };
+      
+      showAdvancedNotification('Navegando...', sections[section] || 'Cargando sección...', 'info');
+      closeUserMenu();
+    }
+
+    function showUserMenu() {
+      document.getElementById('userMenuModal').classList.remove('hidden');
+    }
+
+    function closeUserMenu() {
+      document.getElementById('userMenuModal').classList.add('hidden');
+    }
+
+    function logout() {
+      showAdvancedNotification('👋 Cerrando sesión...', 'Hasta pronto, Andrés', 'info');
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    }
+
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('hidden');
+    }
+
+    // Enhanced quick actions
+    function quickAction(action) {
+      const actions = {
+        orders: {
+          title: '📦 Mis Pedidos',
+          message: 'Mostrando 3 pedidos activos y 12 completados',
+          type: 'info'
+        },
+        favorites: {
+          title: '❤️ Lista de Favoritos',
+          message: '12 productos guardados • 3 con descuento activo',
+          type: 'success'
+        },
+        support: {
+          title: '🎧 Soporte 24/7',
+          message: 'Conectando con agente especializado...',
+          type: 'info'
+        },
+        offers: {
+          title: '🏷️ Ofertas Especiales',
+          message: 'Hasta 50% OFF • 24 productos en promoción',
+          type: 'success'
+        }
+      };
+      
+      const actionData = actions[action];
+      if (actionData) {
+        showAdvancedNotification(actionData.title, actionData.message, actionData.type);
+      }
+    }
+
+    function showAllProducts() {
+      showAdvancedNotification('🛍️ Catálogo Completo', 'Cargando 247 productos disponibles...', 'info');
+    }
+
+    // Advanced notification system
+    function showAdvancedNotification(title, message, type = 'info') {
+      const notification = document.createElement('div');
+      const colors = {
+        success: 'border-green-500/30 bg-green-500/10',
+        error: 'border-red-500/30 bg-red-500/10',
+        info: 'border-blue-500/30 bg-blue-500/10',
+        warning: 'border-yellow-500/30 bg-yellow-500/10'
+      };
+      
+      const icons = {
+        success: 'fas fa-check-circle text-green-400',
+        error: 'fas fa-exclamation-circle text-red-400',
+        info: 'fas fa-info-circle text-blue-400',
+        warning: 'fas fa-exclamation-triangle text-yellow-400'
+      };
+      
+      notification.className = `fixed top-24 right-6 glass-card ${colors[type]} text-white px-6 py-4 rounded-2xl shadow-2xl z-50 border glow-effect transform translate-x-full transition-all duration-500`;
+      notification.innerHTML = `
+        <div class="flex items-start space-x-3">
+          <i class="${icons[type]} text-xl mt-1"></i>
+          <div>
+            <div class="font-bold text-lg">${title}</div>
+            <div class="text-gray-300 text-sm mt-1">${message}</div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+      }, 100);
+      
+      setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 500);
+      }, 4000);
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add stagger animation to elements
+      const cards = document.querySelectorAll('.card-hover');
+      cards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('slide-in');
+      });
+      
+      // Initialize cart display
+      updateCartDisplay();
+      
+      // Welcome message
+      setTimeout(() => {
+        showAdvancedNotification('🎉 ¡Bienvenido de vuelta!', 'Tienes 3 ofertas especiales esperándote', 'success');
+      }, 1000);
+    });
+
+    // Close modals when clicking outside
+    document.addEventListener('click', function(e) {
+      if (e.target.id === 'userMenuModal') {
+        closeUserMenu();
+      }
+      if (e.target.id === 'cartModal') {
+        closeCart();
+      }
+    });
+  </script>
+  <footer class="bg-black text-white py-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-10 mb-12">
+
+      <!-- Brand -->
+      <div>
+        <div class="flex items-center mb-6">
+          <div class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center mr-3 transform transition-transform hover:scale-110">
+            <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" fill="currentColor"/>
+            </svg>
+          </div>
+          <span class="text-2xl font-bold tracking-wider">PEAKSPORT</span>
+        </div>
+        <p class="text-gray-300 mb-6 uppercase">Alcanza tu máximo rendimiento deportivo</p>
+
+        <!-- Redes -->
+        <div class="flex space-x-4">
+          <a href="#" aria-label="Facebook" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+          </a>
+          <a href="#" aria-label="Instagram" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><rect x="2" y="2" width="16" height="16" rx="5"/><circle cx="10" cy="10" r="3"/><circle cx="15.5" cy="4.5" r="1"/></svg>
+          </a>
+          <a href="#" aria-label="Twitter" class="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path d="M23 3a10.9 10.9 0 01-3.14 1.53A4.48 4.48 0 0012 8v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Enlaces Rápidos -->
+      <div>
+        <h3 class="text-lg font-bold mb-6 uppercase">Enlaces rápidos</h3>
+        <ul class="space-y-3">
+          <li><a href="/" class="text-gray-300 hover:text-white transition-colors uppercase">Inicio</a></li>
+          <li><a href="/catalogo" class="text-gray-300 hover:text-white transition-colors uppercase">Catálogo</a></li>
+          <li><a href="/nosotros" class="text-gray-300 hover:text-white transition-colors uppercase">Sobre Nosotros</a></li>
+          <li><a href="/blog" class="text-gray-300 hover:text-white transition-colors uppercase">Blog</a></li>
+          <li><a href="/contacto" class="text-gray-300 hover:text-white transition-colors uppercase">Contacto</a></li>
+        </ul>
+      </div>
+
+      <!-- Categorías -->
+      <div>
+        <h3 class="text-lg font-bold mb-6 uppercase">Categorías</h3>
+        <ul class="space-y-3">
+          <li><a href="/hombre" class="text-gray-300 hover:text-white transition-colors uppercase">Hombre</a></li>
+          <li><a href="/mujer" class="text-gray-300 hover:text-white transition-colors uppercase">Mujer</a></li>
+          <li><a href="/accesorios" class="text-gray-300 hover:text-white transition-colors uppercase">Accesorios</a></li>
+          <li><a href="/ninos" class="text-gray-300 hover:text-white transition-colors uppercase">Niños</a></li>
+          <li><a href="/novedades" class="text-gray-300 hover:text-white transition-colors uppercase">Novedades</a></li>
+        </ul>
+      </div>
+
+      <!-- Contacto -->
+      <div>
+        <h3 class="text-lg font-bold mb-6 uppercase">Contacto</h3>
+        <address class="not-italic space-y-3 text-gray-300 uppercase">
+          <p>📧 info@peaksport.com</p>
+          <p>📞 +57 321 935 9010</p>
+        </address>
+      </div>
+    </div>
+
+    <div class="border-t border-gray-800 pt-8 text-center text-gray-500">
+      <p class="uppercase">&copy; 2025 PEAKSPORT. Todos los derechos reservados. Diseñado para atletas.</p>
+    </div>
+  </div>
+</footer>
+
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98ea95c7e75dda01',t:'MTc2MDQ4MTY5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+</html>

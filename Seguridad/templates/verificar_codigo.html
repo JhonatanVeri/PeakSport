@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificación 2FA - PeakSport</title>
+  
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="{{ url_for('static', filename='img/logo_PeakSport.ico') }}" type="image/x-icon">
+  
+  <!-- Google Fonts -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #dc2626 0%, #7f1d1d 50%, #1a1a1a 100%);
+    }
+    
+    .blur-content {
+      filter: blur(8px);
+      pointer-events: none;
+    }
+    
+    .code-input {
+      width: 3.5rem;
+      height: 4rem;
+      font-size: 1.75rem;
+      text-align: center;
+      font-weight: bold;
+    }
+    
+    .code-input:focus {
+      transform: scale(1.05);
+      transition: all 0.2s;
+    }
+  </style>
+</head>
+<body class="gradient-bg min-h-screen">
+  
+  <!-- Background Content (Blurred) - Login Screen -->
+  <div class="blur-content min-h-screen">
+    <!-- Logo PeakSport -->
+    <header class="absolute top-8 left-8 z-10">
+      <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 bg-white rounded-lg flex items-center justify-center shadow-lg">
+          <img src="{{ url_for('static', filename='img/logo_PeakSport.png') }}" alt="PeakSport" class="w-8 h-8">
+        </div>
+        <div class="text-white">
+          <h1 class="text-2xl font-bold leading-none">PeakSport</h1>
+          <p class="text-xs text-gray-300">Excellence in Motion</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content - Login Card (Blurred Background) -->
+    <main class="min-h-screen flex items-center justify-center p-4">
+      <div class="bg-stone-50 rounded-2xl shadow-2xl p-10 w-full max-w-md">
+        <div class="text-center mb-8">
+          <h2 class="text-3xl font-bold text-gray-900 mb-2">Bienvenido</h2>
+          <p class="text-gray-600">Accede a tu cuenta de PeakSport</p>
+        </div>
+        
+        <!-- Simulated Login Form (just for visual) -->
+        <div class="space-y-5">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Correo Electrónico</label>
+            <input type="email" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl" 
+                   value="{{ session.get('usuario_correo', 'usuario@peaksport.com') }}" disabled>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Contraseña</label>
+            <div class="relative">
+              <input type="password" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl" 
+                     value="••••••••" disabled>
+            </div>
+          </div>
+          <button class="w-full py-3 bg-gradient-to-r from-red-600 to-red-800 text-white rounded-xl font-bold shadow-lg" disabled>
+            Verificando...
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal 2FA Overlay -->
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);">
+    
+    <!-- Modal Content -->
+    <div class="relative bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md animate-fade-in">
+      
+      <!-- Modal Header -->
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <i class="fas fa-shield-alt text-white text-2xl"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-900 mb-2">Verificación de Seguridad</h3>
+        <p class="text-gray-600 text-sm">Ingresa el código de 6 dígitos enviado a tu correo</p>
+      </div>
+
+      <!-- User Info -->
+      <div class="bg-red-50 border-2 border-red-200 rounded-xl p-4 mb-6">
+        <div class="flex items-center">
+          <div class="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center mr-3">
+            <i class="fas fa-user text-white"></i>
+          </div>
+          <div>
+            <p class="text-xs text-red-700 font-semibold">Iniciando sesión como:</p>
+            <p class="text-sm text-red-900 font-bold">{{ session.get('usuario_correo', 'usuario@peaksport.com') }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="mb-4 p-4 rounded-xl {% if category == 'error' %}bg-red-50 border-2 border-red-200 text-red-800{% else %}bg-green-50 border-2 border-green-200 text-green-800{% endif %}">
+              <div class="flex items-center">
+                <i class="fas fa-{% if category == 'error' %}exclamation-circle{% else %}check-circle{% endif %} mr-2"></i>
+                <span class="font-semibold">{{ message }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <!-- Form -->
+      <form method="POST" action="{{ url_for('mfa.verificar_codigo') }}" id="mfaForm">
+        
+        <!-- Code Input -->
+        <div class="mb-6">
+          <div class="flex justify-center gap-2 mb-4" id="codeInputs">
+            <input type="text" maxlength="1" class="code-input border-2 border-gray-300 rounded-xl focus:border-red-600 focus:outline-none transition-all" data-index="0" autocomplete="off">
+            <input type="text" maxlength="1" class="code-input border-2 border-gray-300 rounded-xl focus:border-red-600 focus:outline-none transition-all" data-index="1" autocomplete="off">
+            <input type="text" maxlength="1" class="code-input border-2 border-gray-300 rounded-xl focus:border-red-600 focus:outline-none transition-all" data-index="2" autocomplete="off">
+            <input type="text" maxlength="1" class="code-input border-2 border-gray-300 rounded-xl focus:border-red-600 focus:outline-none transition-all" data-index="3" autocomplete="off">
+            <input type="text" maxlength="1" class="code-input border-2 border-gray-300 rounded-xl focus:border-red-600 focus:outline-none transition-all" data-index="4" autocomplete="off">
+            <input type="text" maxlength="1" class="code-input border-2 border-gray-300 rounded-xl focus:border-red-600 focus:outline-none transition-all" data-index="5" autocomplete="off">
+          </div>
+          <!-- Hidden input para enviar el código completo -->
+          <input type="hidden" name="codigo" id="codigoCompleto">
+        </div>
+
+        <!-- Timer -->
+        <div class="flex items-center justify-center mb-6 bg-gray-50 rounded-xl p-4">
+          <div class="relative mr-4">
+            <svg class="w-16 h-16 transform -rotate-90">
+              <circle cx="32" cy="32" r="28" stroke="#e5e7eb" stroke-width="4" fill="none"></circle>
+              <circle id="timerCircle" cx="32" cy="32" r="28" stroke="#dc2626" stroke-width="4" fill="none" 
+                      style="stroke-dasharray: 176; stroke-dashoffset: 0;"></circle>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span id="timerDisplay" class="text-lg font-bold text-gray-800">5:00</span>
+            </div>
+          </div>
+          <div>
+            <p class="text-sm text-gray-600">Código expira en</p>
+            <p id="timerText" class="text-lg font-bold text-gray-900">5 minutos</p>
+          </div>
+        </div>
+
+        <!-- Resend Button -->
+        <div class="text-center mb-6">
+          <button type="button" id="resendBtn" class="text-red-600 hover:text-red-700 font-semibold text-sm opacity-50 cursor-not-allowed" disabled>
+            <i class="fas fa-redo mr-1"></i> Reenviar código <span id="resendTimer">(5:00)</span>
+          </button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-3">
+          <button type="button" onclick="cancelarMFA()" 
+                  class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-semibold transition-all">
+            Cancelar
+          </button>
+          <button type="submit" 
+                  class="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white rounded-xl font-semibold transition-all shadow-lg">
+            Verificar
+          </button>
+        </div>
+      </form>
+
+      <!-- Security Badge -->
+      <div class="mt-6 text-center">
+        <div class="inline-flex items-center bg-green-50 text-green-700 px-4 py-2 rounded-lg border border-green-200">
+          <i class="fas fa-lock mr-2"></i>
+          <span class="text-xs font-semibold">Conexión cifrada SSL/TLS 256-bit</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // Función para cancelar MFA y volver al login
+    function cancelarMFA() {
+      if (confirm('¿Estás seguro de que deseas cancelar la verificación?')) {
+        // Limpiar sesión MFA y redirigir al login
+        fetch("{{ url_for('login.logout_usuario_route') }}", {
+          method: 'POST'
+        }).then(() => {
+          window.location.href = "{{ url_for('login.vista_pantalla_login') }}";
+        });
+      }
+    }
+
+    // Auto-focus en inputs
+    const inputs = document.querySelectorAll('.code-input');
+    const codigoCompleto = document.getElementById('codigoCompleto');
+    const form = document.getElementById('mfaForm');
+
+    inputs[0].focus();
+
+    inputs.forEach((input, index) => {
+      // Auto-advance
+      input.addEventListener('input', (e) => {
+        if (e.target.value.length === 1 && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+        updateHiddenInput();
+      });
+
+      // Backspace navigation
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && index > 0) {
+          inputs[index - 1].focus();
+        }
+      });
+
+      // Solo números
+      input.addEventListener('keypress', (e) => {
+        if (!/[0-9]/.test(e.key)) {
+          e.preventDefault();
+        }
+      });
+
+      // Paste handler
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData('text').slice(0, 6);
+        pastedData.split('').forEach((char, i) => {
+          if (i < inputs.length && /[0-9]/.test(char)) {
+            inputs[i].value = char;
+          }
+        });
+        updateHiddenInput();
+        if (pastedData.length === 6) {
+          inputs[5].focus();
+        }
+      });
+    });
+
+    function updateHiddenInput() {
+      const code = Array.from(inputs).map(input => input.value).join('');
+      codigoCompleto.value = code;
+    }
+
+    // Timer (5 minutos = 300 segundos)
+    let timeLeft = 300;
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerText = document.getElementById('timerText');
+    const timerCircle = document.getElementById('timerCircle');
+    const resendBtn = document.getElementById('resendBtn');
+    const resendTimer = document.getElementById('resendTimer');
+    const circumference = 2 * Math.PI * 28;
+
+    const timer = setInterval(() => {
+      timeLeft--;
+      
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      timerDisplay.textContent = timeString;
+      timerText.textContent = `${minutes} minuto${minutes !== 1 ? 's' : ''}`;
+      resendTimer.textContent = `(${timeString})`;
+      
+      // Update circle
+      const offset = circumference - (timeLeft / 300) * circumference;
+      timerCircle.style.strokeDashoffset = offset;
+      
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        alert('El código ha expirado. Por favor, inicia sesión nuevamente.');
+        window.location.href = "{{ url_for('login.vista_pantalla_login') }}";
+      }
+      
+      if (timeLeft <= 240) { // Habilitar después de 1 minuto (300-240 = 60s)
+        resendBtn.disabled = false;
+        resendBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }, 1000);
+
+    // Auto-submit cuando se completan los 6 dígitos
+    form.addEventListener('submit', (e) => {
+      updateHiddenInput();
+      if (codigoCompleto.value.length !== 6) {
+        e.preventDefault();
+        alert('Por favor ingresa el código completo de 6 dígitos');
+      }
+    });
+
+    // Resend button
+    resendBtn.addEventListener('click', () => {
+      if (!resendBtn.disabled) {
+        if (confirm('¿Deseas recibir un nuevo código de verificación?')) {
+          window.location.reload();
+        }
+      }
+    });
+
+    // Animación de entrada
+    document.querySelector('.animate-fade-in').style.animation = 'fadeIn 0.3s ease-out';
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>
+    
+    <!-- Modal Header -->
+    <div class="text-center mb-6">
+      <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+        <i class="fas fa-shield-alt text-white text-2xl"></i>
+      </div>
+      <h3 class="text-2xl font-bold text-gray-900 mb-2">Verificación de Seguridad</h3>
+      <p class="text-gray-600 text-sm">Ingresa el código de 6 dígitos enviado a tu correo</p>
+    </div>
+
+    <!-- User Info -->
+    <div class="bg-red-50 border-2 border-red-200 rounded-xl p-4 mb-6">
+      <div class="flex items-center">
+        <div class="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center mr-3">
+          <i class="fas fa-user text-white"></i>
+        </div>
+        <div>
+          <p class="text-xs text-red-700 font-semibold">Iniciando sesión como:</p>
+          <p class="text-sm text-red-900 font-bold">{{ session.get('usuario_correo', 'usuario@peaksport.com') }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="mb-4 p-4 rounded-xl {% if category == 'error' %}bg-red-50 border-2 border-red-200 text-red-800{% else %}bg-green-50 border-2 border-green-200 text-green-800{% endif %}">
+            <div class="flex items-center">
+              <i class="fas fa-{% if category == 'error' %}exclamation-circle{% else %}check-circle{% endif %} mr-2"></i>
+              <span class="font-semibold">{{ message }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Form -->
+    <form method="POST" action="{{ url_for('mfa.verificar_codigo') }}" id="mfaForm">
+      
+      <!-- Code Input -->
+      <div class="mb-6">
+        <div class="flex justify-center gap-2 mb-4" id="codeInputs">
+          <input type="text" maxlength="1" class="code-input border-2 border-gray-300 rounded-xl focus:border-red-600 focus:outline-none transition-all" data-index="0" autocomplete="off">
+          <input type="text" maxlength="1" class="code-input border-2 border-gray-300 rounded-xl focus:border-red-600 focus:outline-none transition-all" data-index="1" autocomplete="off">
+          <input type="text" maxlength="1" class="code-input border-2 border-gray-300 rounded-xl focus:border-red-600 focus:outline-none transition-all" data-index="2" autocomplete="off">
+          <input type="text" maxlength="1" class="code-input border-2 border-gray-300 rounded-xl focus:border-red-600 focus:outline-none transition-all" data-index="3" autocomplete="off">
+          <input type="text" maxlength="1" class="code-input border-2 border-gray-300 rounded-xl focus:border-red-600 focus:outline-none transition-all" data-index="4" autocomplete="off">
+          <input type="text" maxlength="1" class="code-input border-2 border-gray-300 rounded-xl focus:border-red-600 focus:outline-none transition-all" data-index="5" autocomplete="off">
+        </div>
+        <!-- Hidden input para enviar el código completo -->
+        <input type="hidden" name="codigo" id="codigoCompleto">
+      </div>
+
+      <!-- Timer -->
+      <div class="flex items-center justify-center mb-6 bg-gray-50 rounded-xl p-4">
+        <div class="relative mr-4">
+          <svg class="w-16 h-16 transform -rotate-90">
+            <circle cx="32" cy="32" r="28" stroke="#e5e7eb" stroke-width="4" fill="none"></circle>
+            <circle id="timerCircle" cx="32" cy="32" r="28" stroke="#dc2626" stroke-width="4" fill="none" 
+                    style="stroke-dasharray: 176; stroke-dashoffset: 0;"></circle>
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span id="timerDisplay" class="text-lg font-bold text-gray-800">5:00</span>
+          </div>
+        </div>
+        <div>
+          <p class="text-sm text-gray-600">Código expira en</p>
+          <p id="timerText" class="text-lg font-bold text-gray-900">5 minutos</p>
+        </div>
+      </div>
+
+      <!-- Resend Button -->
+      <div class="text-center mb-6">
+        <button type="button" id="resendBtn" class="text-red-600 hover:text-red-700 font-semibold text-sm opacity-50 cursor-not-allowed" disabled>
+          <i class="fas fa-redo mr-1"></i> Reenviar código <span id="resendTimer">(5:00)</span>
+        </button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-3">
+        <a href="{{ url_for('login.vista_pantalla_login') }}" 
+           class="flex-1 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-semibold transition-all text-center">
+          Cancelar
+        </a>
+        <button type="submit" 
+                class="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white rounded-xl font-semibold transition-all shadow-lg">
+          Verificar
+        </button>
+      </div>
+    </form>
+
+    <!-- Security Badge -->
+    <div class="mt-6 text-center">
+      <div class="inline-flex items-center bg-green-50 text-green-700 px-4 py-2 rounded-lg border border-green-200">
+        <i class="fas fa-lock mr-2"></i>
+        <span class="text-xs font-semibold">Conexión cifrada SSL/TLS 256-bit</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // Auto-focus en inputs
+    const inputs = document.querySelectorAll('.code-input');
+    const codigoCompleto = document.getElementById('codigoCompleto');
+    const form = document.getElementById('mfaForm');
+
+    inputs[0].focus();
+
+    inputs.forEach((input, index) => {
+      // Auto-advance
+      input.addEventListener('input', (e) => {
+        if (e.target.value.length === 1 && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+        updateHiddenInput();
+      });
+
+      // Backspace navigation
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && index > 0) {
+          inputs[index - 1].focus();
+        }
+      });
+
+      // Solo números
+      input.addEventListener('keypress', (e) => {
+        if (!/[0-9]/.test(e.key)) {
+          e.preventDefault();
+        }
+      });
+
+      // Paste handler
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData('text').slice(0, 6);
+        pastedData.split('').forEach((char, i) => {
+          if (i < inputs.length && /[0-9]/.test(char)) {
+            inputs[i].value = char;
+          }
+        });
+        updateHiddenInput();
+        if (pastedData.length === 6) {
+          inputs[5].focus();
+        }
+      });
+    });
+
+    function updateHiddenInput() {
+      const code = Array.from(inputs).map(input => input.value).join('');
+      codigoCompleto.value = code;
+    }
+
+    // Timer (5 minutos = 300 segundos)
+    let timeLeft = 300;
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerText = document.getElementById('timerText');
+    const timerCircle = document.getElementById('timerCircle');
+    const resendBtn = document.getElementById('resendBtn');
+    const resendTimer = document.getElementById('resendTimer');
+    const circumference = 2 * Math.PI * 28;
+
+    const timer = setInterval(() => {
+      timeLeft--;
+      
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      
+      timerDisplay.textContent = timeString;
+      timerText.textContent = `${minutes} minuto${minutes !== 1 ? 's' : ''}`;
+      resendTimer.textContent = `(${timeString})`;
+      
+      // Update circle
+      const offset = circumference - (timeLeft / 300) * circumference;
+      timerCircle.style.strokeDashoffset = offset;
+      
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        alert('El código ha expirado. Por favor, solicita uno nuevo.');
+        window.location.href = "{{ url_for('login.vista_pantalla_login') }}";
+      }
+      
+      if (timeLeft <= 60) {
+        resendBtn.disabled = false;
+        resendBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }, 1000);
+
+    // Auto-submit cuando se completan los 6 dígitos
+    form.addEventListener('submit', (e) => {
+      updateHiddenInput();
+      if (codigoCompleto.value.length !== 6) {
+        e.preventDefault();
+        alert('Por favor ingresa el código completo de 6 dígitos');
+      }
+    });
+
+    // Resend button
+    resendBtn.addEventListener('click', () => {
+      if (!resendBtn.disabled) {
+        window.location.reload();
+      }
+    });
+  </script>
+</body>
+</html>
