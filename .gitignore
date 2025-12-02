@@ -1,12 +1,13 @@
 ﻿# ===========================================
-# 🔧 ENTORNOS
+#  ENTORNOS
 # ===========================================
 .env
 .env.local
 .env.*.local
+.env_render
 
 # ===========================================
-# 🐍 ENTORNO VIRTUAL PYTHON
+#  ENTORNO VIRTUAL PYTHON
 # ===========================================
 venv/
 venvPeakSport/
@@ -14,7 +15,7 @@ ENV/
 env/
 
 # ===========================================
-# 🐍 ARCHIVOS PYTHON
+#  ARCHIVOS PYTHON
 # ===========================================
 __pycache__/
 *.py[cod]
@@ -44,7 +45,7 @@ share/python-wheels/
 MANIFEST
 
 # ===========================================
-# 💾 BASE DE DATOS LOCAL
+#  BASE DE DATOS LOCAL
 # ===========================================
 *.db
 *.sqlite
@@ -52,7 +53,7 @@ MANIFEST
 peaksport.db
 
 # ===========================================
-# 🧾 LOGS
+#  LOGS
 # ===========================================
 *.log
 *.log.*
@@ -60,8 +61,42 @@ logs/
 Log_PeakSport.log
 
 # ===========================================
-# 🧠 IDEs / EDITORES
+#  IDEs / EDITORES
 # ===========================================
 .vscode/
 .idea/
 *.sw*
+*.swo
+*.swp
+
+# ===========================================
+#  FLASK / RENDER
+# ===========================================
+flask_session/
+instance/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ===========================================
+#  ARCHIVOS TEMPORALES Y BACKUPS
+# ===========================================
+*.bak
+*.tmp
+*~
+.DS_Store
+Thumbs.db
+
+# ===========================================
+#  ARCHIVOS DE CREDENCIALES / BACKUP
+# ===========================================
+git-backup-*/
+*.pem
+*.key
+credentials.json
+
+# ===========================================
+#  ARCHIVOS COPY (DESARROLLO)
+# ===========================================
+*copy*
+*copy.*
