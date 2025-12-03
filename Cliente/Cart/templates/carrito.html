@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PeakSport - Carrito de Compras</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('cart.static', filename='css/carrito.css') }}">
+</head>
+<body>
+
+  <!-- 🔝 Header -->
+  <header class="glass-card shadow-2xl fixed w-full z-50 border-b border-red-500/20">
+    <div class="max-w-7xl mx-auto flex justify-between items-center py-4 px-6">
+      <div class="flex items-center space-x-4">
+        <a href="/" class="flex items-center space-x-2 text-gray-300 hover:text-red-400 transition-all duration-300 hover:scale-105">
+          <i class="fas fa-arrow-left text-lg"></i>
+          <span class="font-medium hidden sm:block">Volver a la tienda</span>
+        </a>
+      </div>
+      
+      <!-- ✅ CAMBIADO: Logo estrella y texto PeakSport -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center floating-animation subtle-glow">
+          <i class="fas fa-star text-white"></i>
+        </div>
+        <h1 class="text-xl sm:text-2xl font-bold text-red-400">PeakSport</h1>
+      </div>
+      
+      <div class="flex items-center space-x-3 glass-card rounded-full px-3 sm:px-4 py-2">
+        <img src="https://i.pravatar.cc/32?seed={{ usuario_email }}" alt="avatar" class="w-8 h-8 rounded-full border-2 border-red-500">
+        <span class="font-medium text-xs sm:text-sm text-gray-300 hidden sm:block">{{ usuario_nombre }}</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="pt-24 max-w-7xl mx-auto px-4 sm:px-6 pb-16">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+      
+      <!-- 🛒 Lista de productos -->
+      <div class="lg:col-span-2">
+        <div class="glass-card rounded-3xl p-6 sm:p-8 border border-white/10 slide-in">
+          <div class="flex items-center justify-between mb-8">
+            <h2 class="text-2xl sm:text-3xl font-bold text-white">Tus productos</h2>
+            <div class="flex items-center space-x-2 text-gray-400 text-sm sm:text-base">
+              <i class="fas fa-box"></i>
+              <span id="itemCount">0 artículos</span>
+            </div>
+          </div>
+          
+          <!-- Loading -->
+          <div id="loadingSpinner" class="flex justify-center items-center py-16">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+          </div>
+
+          <!-- Carrito vacío -->
+          <div id="emptyCart" class="hidden text-center py-16">
+            <div class="w-24 h-24 mx-auto mb-6 glass-card rounded-full flex items-center justify-center">
+              <i class="fas fa-shopping-cart text-4xl text-gray-400"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-3">Tu carrito está vacío</h3>
+            <p class="text-gray-400 mb-6">Agrega productos para comenzar tu compra</p>
+            <a href="/" class="gradient-bg text-white px-8 py-3 rounded-xl hover:scale-105 transition-all font-medium inline-flex items-center space-x-2">
+              <i class="fas fa-store"></i>
+              <span>Ir a la tienda</span>
+            </a>
+          </div>
+          
+          <!-- Items del carrito -->
+          <div id="cartItems" class="space-y-6"></div>
+          
+          <!-- Botón continuar comprando -->
+          <div id="continueShoppingSection" class="hidden mt-8 pt-6 border-t border-white/20">
+            <a href="/" class="flex items-center space-x-3 text-gray-300 hover:text-red-400 transition-all duration-300 hover:scale-105">
+              <i class="fas fa-plus"></i>
+              <span class="font-medium">Agregar más productos</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 💰 Resumen de compra -->
+      <div class="lg:col-span-1">
+        <div class="glass-card rounded-3xl p-6 sm:p-8 border border-white/10 slide-in sticky top-28">
+          <h3 class="text-xl sm:text-2xl font-bold text-white mb-6">Resumen de compra</h3>
+          
+          <!-- Desglose de precios -->
+          <div class="space-y-3 mb-6">
+            <div class="flex justify-between text-gray-300 text-sm">
+              <span>Subtotal</span>
+              <span id="subtotal">$0.00</span>
+            </div>
+            <div class="flex justify-between text-gray-300 text-sm">
+              <span>Envío</span>
+              <span id="shipping">$0.00</span>
+            </div>
+            <div class="flex justify-between text-gray-300 text-sm">
+              <span>Impuestos</span>
+              <span id="taxes">$0.00</span>
+            </div>
+            <div class="border-t border-white/20 pt-4">
+              <div class="flex justify-between text-white text-lg font-bold">
+                <span>Total</span>
+                <span id="total" class="text-red-400">$0.00</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Botones de acción -->
+          <div class="space-y-3">
+            <button onclick="proceedToCheckout()" class="w-full gradient-bg text-white py-3 sm:py-4 rounded-xl hover:scale-105 transition-all font-bold elegant-shadow inline-flex items-center justify-center space-x-2">
+              <i class="fas fa-credit-card"></i>
+              <span>Proceder al pago</span>
+            </button>
+            
+            <button onclick="clearCart()" class="w-full glass-card text-red-400 py-3 rounded-xl hover:bg-red-500/10 transition-all font-medium border border-red-500/30 inline-flex items-center justify-center space-x-2">
+              <i class="fas fa-trash"></i>
+              <span>Vaciar carrito</span>
+            </button>
+          </div>
+          
+          <!-- Información adicional -->
+          <div class="mt-6 pt-6 border-t border-white/20">
+            <div class="space-y-3 text-xs sm:text-sm text-gray-400">
+              <div class="flex items-center space-x-2">
+                <i class="fas fa-shield-alt text-green-400"></i>
+                <span>Compra 100% segura</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <i class="fas fa-truck text-blue-400"></i>
+                <span>Envío gratis en pedidos +$1000</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <i class="fas fa-undo text-purple-400"></i>
+                <span>30 días para devoluciones</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Notification -->
+  <div id="notification" class="fixed top-24 right-4 sm:right-6 glass-card text-white px-4 sm:px-6 py-4 rounded-2xl shadow-2xl transform translate-x-full transition-all duration-500 z-50 border elegant-shadow max-w-sm">
+    <div class="flex items-center space-x-3">
+      <div id="notificationIcon" class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+        <i class="fas fa-check text-white"></i>
+      </div>
+      <div class="min-w-0">
+        <div class="font-bold text-sm" id="notificationTitle">Notificación</div>
+        <div class="text-gray-300 text-xs" id="notificationMessage">Mensaje</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('cart.static', filename='js/carrito.js') }}"></script>
+</body>
+</html>
