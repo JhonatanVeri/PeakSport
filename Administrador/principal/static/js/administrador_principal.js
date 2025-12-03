@@ -461,13 +461,14 @@
     }
   }
 
-  /* ===========================
-     Exportar PDF
-  ============================ */
+ /* ===========================
+   Exportar PDF - Diseño Elegante "Esquina Roja"
+============================ */
   async function exportarPDF() {
     const log = Log('EXPORT');
     try {
-      showNotification('Exportando', 'Generando PDF...', 'info');
+      showNotification('Exportando', 'Generando PDF con diseño elegante...', 'info');
+      
       const iframe = document.createElement('iframe');
       iframe.style.display = 'none';
       document.body.appendChild(iframe);
@@ -475,12 +476,14 @@
       const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
 
       const adminInfo = {
-        nombre: 'PeakSport - Gestión de Almacén',
-        empresa: 'PeakSport Colombia',
-        direccion: 'Bogotá, D.C.',
-        telefono: '+57 (1) XXXX-XXXX',
-        email: 'admin@peaksport.com',
-        fecha: new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' }),
+        empresa: 'PeakSport',
+        telefono: '3219359010',
+        email: 'PeakSport_@hotmail.com',
+        fecha: new Date().toLocaleDateString('es-CO', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
       };
 
       const consolidado = {
@@ -496,100 +499,333 @@
         <html lang="es">
         <head>
           <meta charset="UTF-8">
-          <title>Reporte de Inventario - PeakSport</title>
+          <title>Informe de Inventario - PeakSport</title>
           <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; line-height: 1.6; background: white; }
-            .page { width: 210mm; height: 297mm; margin: 0 auto; padding: 20mm; background: white; }
-            .membrete { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #000; padding-bottom: 15px; margin-bottom: 20px; }
-            .logo-section { display: flex; align-items: center; gap: 15px; }
-            .logo { width: 60px; height: 60px; background: linear-gradient(135deg, #000000 0%, #ff0011 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; font-weight: bold; }
-            .empresa-info h1 { font-size: 20px; color: #000; margin-bottom: 3px; }
-            .empresa-info p { font-size: 11px; color: #666; margin: 2px 0; }
-            .fecha-section { text-align: right; }
-            .fecha-section p { font-size: 11px; color: #666; }
-            .fecha-section .fecha { font-size: 13px; font-weight: bold; color: #000; margin-top: 5px; }
-            h2 { font-size: 16px; color: #000; margin-top: 25px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #ff0011; }
-            .kpis-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-            .kpi-box { background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; padding: 12px; text-align: center; }
-            .kpi-box label { font-size: 10px; color: #666; font-weight: bold; display: block; margin-bottom: 5px; text-transform: uppercase; }
-            .kpi-box .valor { font-size: 18px; font-weight: bold; color: #000; }
-            .kpi-box.green { background: #e8f5e9; border-color: #4caf50; }
-            .kpi-box.green .valor { color: #2e7d32; }
-            .kpi-box.red { background: #ffebee; border-color: #f44336; }
-            .kpi-box.red .valor { color: #c62828; }
-            table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 10px; }
-            thead { background: linear-gradient(135deg, #000000 0%, #ff0011 100%); color: white; }
-            th { padding: 10px; text-align: left; font-weight: bold; border: 1px solid #ddd; }
-            td { padding: 8px; border: 1px solid #ddd; }
-            tbody tr:nth-child(even) { background: #f9f9f9; }
-            tbody tr:hover { background: #f0f0f0; }
-            .status-badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 9px; font-weight: bold; }
-            .status-activo { background: #d4edda; color: #155724; }
-            .status-inactivo { background: #f8d7da; color: #721c24; }
-            .precio { font-weight: bold; color: #2e7d32; text-align: right; font-family: 'Courier New', monospace; }
-            .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd; text-align: center; font-size: 9px; color: #999; }
-            .footer p { margin: 3px 0; }
-            @media print { body { margin: 0; padding: 0; } .page { page-break-after: always; } }
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+
+            body {
+              font-family: 'Arial', 'Helvetica', sans-serif;
+              background: white;
+              color: #000;
+            }
+
+            .page {
+              width: 210mm;
+              min-height: 297mm;
+              margin: 0 auto;
+              background: white;
+              position: relative;
+              padding: 30mm 20mm;
+            }
+
+            /* ========== ESQUINA ROJA DECORATIVA ========== */
+            .red-corner {
+              position: absolute;
+              top: 0;
+              right: 0;
+              width: 0;
+              height: 0;
+              border-style: solid;
+              border-width: 0 180px 180px 0;
+              border-color: transparent #ff0011 transparent transparent;
+              z-index: 1;
+            }
+
+            /* ========== ENCABEZADO PRINCIPAL ========== */
+            .header-section {
+              text-align: center;
+              margin-bottom: 60px;
+              position: relative;
+              z-index: 2;
+            }
+
+            .main-title {
+              font-size: 48px;
+              font-weight: 900;
+              letter-spacing: 8px;
+              color: #000;
+              margin-bottom: 10px;
+              text-transform: uppercase;
+              line-height: 1.2;
+            }
+
+            .subtitle {
+              font-size: 36px;
+              font-weight: 300;
+              letter-spacing: 4px;
+              color: #000;
+              margin-bottom: 40px;
+              text-transform: uppercase;
+            }
+
+            /* ========== INFORMACIÓN DE CONTACTO ========== */
+            .contact-info {
+              text-align: center;
+              margin-bottom: 50px;
+            }
+
+            .contact-info p {
+              font-size: 16px;
+              color: #333;
+              margin: 8px 0;
+              letter-spacing: 1px;
+            }
+
+            .company-name {
+              font-size: 24px;
+              font-weight: bold;
+              color: #ff0011;
+              margin-top: 15px;
+              letter-spacing: 2px;
+            }
+
+            /* ========== FECHA ========== */
+            .date-section {
+              text-align: center;
+              margin-bottom: 40px;
+              padding: 15px;
+              background: #f8f8f8;
+              border-left: 4px solid #ff0011;
+            }
+
+            .date-section p {
+              font-size: 14px;
+              color: #666;
+              letter-spacing: 1px;
+            }
+
+            /* ========== KPIs RESUMEN ========== */
+            .kpis-section {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 15px;
+              margin-bottom: 40px;
+            }
+
+            .kpi-card {
+              background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+              padding: 20px;
+              text-align: center;
+              border-radius: 8px;
+              border: 1px solid #ddd;
+            }
+
+            .kpi-card.primary {
+              background: linear-gradient(135deg, #000000 0%, #333333 100%);
+              color: white;
+            }
+
+            .kpi-card.success {
+              background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+              color: white;
+            }
+
+            .kpi-card.danger {
+              background: linear-gradient(135deg, #ff0011 0%, #cc0000 100%);
+              color: white;
+            }
+
+            .kpi-label {
+              font-size: 11px;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              opacity: 0.8;
+              margin-bottom: 8px;
+              font-weight: bold;
+            }
+
+            .kpi-value {
+              font-size: 28px;
+              font-weight: 900;
+              letter-spacing: 1px;
+            }
+
+            /* ========== SECCIÓN DE TÍTULO ========== */
+            .section-title {
+              font-size: 20px;
+              font-weight: bold;
+              color: #000;
+              margin: 40px 0 20px 0;
+              padding-bottom: 10px;
+              border-bottom: 3px solid #ff0011;
+              text-transform: uppercase;
+              letter-spacing: 2px;
+            }
+
+            /* ========== TABLA DE PRODUCTOS ========== */
+            .products-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 40px;
+              font-size: 11px;
+            }
+
+            .products-table thead {
+              background: linear-gradient(135deg, #000000 0%, #333333 100%);
+              color: white;
+            }
+
+            .products-table th {
+              padding: 12px 10px;
+              text-align: left;
+              font-weight: bold;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              font-size: 10px;
+            }
+
+            .products-table td {
+              padding: 10px;
+              border-bottom: 1px solid #e0e0e0;
+            }
+
+            .products-table tbody tr:nth-child(even) {
+              background: #f9f9f9;
+            }
+
+            .products-table tbody tr:hover {
+              background: #f0f0f0;
+            }
+
+            /* Estados */
+            .badge {
+              display: inline-block;
+              padding: 4px 10px;
+              border-radius: 12px;
+              font-size: 9px;
+              font-weight: bold;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            }
+
+            .badge-active {
+              background: #d4edda;
+              color: #155724;
+            }
+
+            .badge-inactive {
+              background: #f8d7da;
+              color: #721c24;
+            }
+
+            /* Precios */
+            .price-cell {
+              font-weight: bold;
+              color: #2e7d32;
+              text-align: right;
+              font-family: 'Courier New', monospace;
+            }
+
+            /* ========== FOOTER ========== */
+            .footer {
+              margin-top: 60px;
+              padding-top: 20px;
+              border-top: 2px solid #e0e0e0;
+              text-align: center;
+            }
+
+            .footer p {
+              font-size: 9px;
+              color: #999;
+              margin: 5px 0;
+              letter-spacing: 0.5px;
+            }
+
+            /* ========== ESTILOS DE IMPRESIÓN ========== */
+            @media print {
+              body {
+                margin: 0;
+                padding: 0;
+              }
+              
+              .page {
+                margin: 0;
+                page-break-after: always;
+              }
+
+              .red-corner {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+              }
+
+              .kpi-card,
+              .products-table thead {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+              }
+            }
           </style>
         </head>
         <body>
           <div class="page">
-            <div class="membrete">
-              <div class="logo-section">
-                <div class="logo">🏔</div>
-                <div class="empresa-info">
-                  <h1>${adminInfo.empresa}</h1>
-                  <p>${adminInfo.direccion}</p>
-                  <p>${adminInfo.telefono} • ${adminInfo.email}</p>
-                </div>
+            <!-- ESQUINA ROJA DECORATIVA -->
+            <div class="red-corner"></div>
+
+            <!-- ENCABEZADO -->
+            <div class="header-section">
+              <h1 class="main-title">INFORME</h1>
+              <h2 class="subtitle">DE INVENTARIO</h2>
+            </div>
+
+            <!-- INFORMACIÓN DE CONTACTO -->
+            <div class="contact-info">
+              <p>${adminInfo.telefono}</p>
+              <p>${adminInfo.email}</p>
+              <p class="company-name">${adminInfo.empresa}</p>
+            </div>
+
+            <!-- FECHA -->
+            <div class="date-section">
+              <p><strong>Fecha de generación:</strong> ${adminInfo.fecha}</p>
+            </div>
+
+            <!-- KPIs -->
+            <div class="kpis-section">
+              <div class="kpi-card primary">
+                <div class="kpi-label">Total Productos</div>
+                <div class="kpi-value">${consolidado.totalProductos.toLocaleString('es-CO')}</div>
               </div>
-              <div class="fecha-section">
-                <p>Reporte de Inventario</p>
-                <div class="fecha">${adminInfo.fecha}</div>
+              <div class="kpi-card success">
+                <div class="kpi-label">Activos</div>
+                <div class="kpi-value">${consolidado.productosActivos.toLocaleString('es-CO')}</div>
+              </div>
+              <div class="kpi-card danger">
+                <div class="kpi-label">Inactivos</div>
+                <div class="kpi-value">${consolidado.productosInactivos.toLocaleString('es-CO')}</div>
+              </div>
+              <div class="kpi-card success">
+                <div class="kpi-label">Valor Total</div>
+                <div class="kpi-value">${numberToCOP(consolidado.valorTotal, 'COP')}</div>
               </div>
             </div>
 
-            <h2>📊 Consolidado de Productos</h2>
-            <div class="kpis-container">
-              <div class="kpi-box">
-                <label>Total Productos</label>
-                <div class="valor">${consolidado.totalProductos.toLocaleString('es-CO')}</div>
-              </div>
-              <div class="kpi-box green">
-                <label>Activos</label>
-                <div class="valor">${consolidado.productosActivos.toLocaleString('es-CO')}</div>
-              </div>
-              <div class="kpi-box red">
-                <label>Inactivos</label>
-                <div class="valor">${consolidado.productosInactivos.toLocaleString('es-CO')}</div>
-              </div>
-              <div class="kpi-box green">
-                <label>Valor Total</label>
-                <div class="valor">${numberToCOP(consolidado.valorTotal, 'COP')}</div>
-              </div>
-            </div>
+            <!-- TÍTULO DE SECCIÓN -->
+            <h3 class="section-title">Detalle de Productos</h3>
 
-            <h2>📦 Detalle de Productos</h2>
-            <table>
+            <!-- TABLA DE PRODUCTOS -->
+            <table class="products-table">
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Nombre</th>
-                  <th>Slug</th>
-                  <th>Precio</th>
-                  <th>Estado</th>
+                  <th>Nombre del Producto</th>
+                  <th>SKU/Slug</th>
+                  <th style="text-align: right;">Precio</th>
+                  <th style="text-align: center;">Estado</th>
                 </tr>
               </thead>
               <tbody>
                 ${consolidado.productos.map(p => `
                   <tr>
-                    <td>${p.id}</td>
+                    <td><strong>${p.id}</strong></td>
                     <td>${p.nombre || '-'}</td>
-                    <td><small>${p.slug || '-'}</small></td>
-                    <td class="precio">${numberToCOP(p.precio_centavos, p.moneda || 'COP')}</td>
-                    <td>
-                      <span class="status-badge ${p.activo ? 'status-activo' : 'status-inactivo'}">
+                    <td><small style="color: #666;">${p.slug || '-'}</small></td>
+                    <td class="price-cell">${numberToCOP(p.precio_centavos, p.moneda || 'COP')}</td>
+                    <td style="text-align: center;">
+                      <span class="badge ${p.activo ? 'badge-active' : 'badge-inactive'}">
                         ${p.activo ? '✓ Activo' : '✗ Inactivo'}
                       </span>
                     </td>
@@ -598,9 +834,11 @@
               </tbody>
             </table>
 
+            <!-- FOOTER -->
             <div class="footer">
               <p>📄 Este documento fue generado automáticamente por el sistema de gestión de PeakSport</p>
               <p>© ${new Date().getFullYear()} PeakSport. Todos los derechos reservados.</p>
+              <p>Documento confidencial - Solo para uso interno</p>
             </div>
           </div>
         </body>
@@ -611,20 +849,24 @@
       iframeDoc.write(htmlContent);
       iframeDoc.close();
 
+      // Esperar a que cargue y luego imprimir
       setTimeout(() => {
         iframe.contentWindow.print();
+        
         setTimeout(() => {
           document.body.removeChild(iframe);
-          showNotification('PDF listo', 'El PDF se ha generado correctamente', 'success');
-          log.info('Exportación a PDF completada');
+          showNotification('PDF Generado', 'El informe elegante está listo', 'success');
+          log.info('✅ Exportación completada con diseño elegante');
         }, 800);
       }, 500);
 
     } catch (error) {
-      console.error('Error al exportar PDF:', error);
-      showNotification('Error', 'No se pudo generar el PDF', 'error');
+      console.error('❌ Error al exportar PDF:', error);
+      showNotification('Error', 'No se pudo generar el PDF: ' + error.message, 'error');
     }
   }
+
+  // Asegurarse de que esté disponible globalmente
   window.exportarPDF = exportarPDF;
 
   /* ===========================
