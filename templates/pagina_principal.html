@@ -32,7 +32,7 @@
   window.__USER_EMAIL__ = {{ user_email|tojson }};
 
   // APIs
-  window.__API_BASE__ = "/api/productos";
+  window.__API_BASE__ = "/catalogo/api/productos";
 
   // URLs del sistema de login
   window.__LOGIN_URL__ = "{{ url_for('login.vista_pantalla_login') }}";
@@ -57,10 +57,16 @@
           <span>Inicio</span>
         </a>
 
+        <!-- 🆕 NUEVO: Link al Catálogo -->
+        <a href="/catalogo" class="flex items-center space-x-2 hover:text-red-400 transition-all duration-300 font-medium text-gray-300 hover:scale-105">
+          <i class="fas fa-shopping-bag"></i>
+          <span>Catálogo</span>
+        </a>
+
         {% if is_logged %}
           <a href="#productos" class="flex items-center space-x-2 hover:text-red-400 transition-all duration-300 font-medium text-gray-300 hover:scale-105">
-            <i class="fas fa-shopping-bag"></i>
-            <span>Productos</span>
+            <i class="fas fa-star"></i>
+            <span>Recomendados</span>
           </a>
           <a href="#" class="flex items-center space-x-2 hover:text-red-400 transition-all duration-300 font-medium text-gray-300 hover:scale-105" onclick="navigateTo('orders'); return false;">
             <i class="fas fa-box"></i>
@@ -138,10 +144,16 @@
           <span>Inicio</span>
         </a>
 
+        <!-- 🆕 NUEVO: Link al Catálogo en mobile -->
+        <a href="/catalogo" class="flex items-center space-x-3 py-3 hover:text-red-400 transition-all text-gray-300 hover:bg-white/5 rounded-lg px-3">
+          <i class="fas fa-shopping-bag w-5"></i>
+          <span>Catálogo</span>
+        </a>
+
         {% if is_logged %}
           <a href="#productos" class="flex items-center space-x-3 py-3 hover:text-red-400 transition-all text-gray-300 hover:bg-white/5 rounded-lg px-3">
-            <i class="fas fa-shopping-bag w-5"></i>
-            <span>Productos</span>
+            <i class="fas fa-star w-5"></i>
+            <span>Recomendados</span>
           </a>
           <a href="#" class="flex items-center space-x-3 py-3 hover:text-red-400 transition-all text-gray-300 hover:bg-white/5 rounded-lg px-3" onclick="navigateTo('orders'); return false;">
             <i class="fas fa-box w-5"></i>
@@ -194,7 +206,8 @@
           </p>
 
           <div class="flex flex-wrap gap-6">
-            <a href="#productos" class="glass-card rounded-xl px-6 py-3 hover:scale-105 transition-all duration-300 cursor-pointer">
+            <!-- 🆕 CAMBIO: Usar href en lugar de onclick -->
+            <a href="/catalogo" class="glass-card rounded-xl px-6 py-3 hover:scale-105 transition-all duration-300 cursor-pointer">
               <div class="flex items-center space-x-3">
                 <i class="fas fa-store text-green-400 text-xl"></i>
                 <div>
@@ -253,10 +266,11 @@
     <section class="mb-16" id="productos">
       <div class="flex items-center justify-between mb-10">
         <h3 class="text-3xl font-bold text-white">Recomendados</h3>
-        <button class="gradient-bg hover:scale-105 transition-all duration-300 font-medium flex items-center space-x-2 px-6 py-3 rounded-xl text-white elegant-shadow" onclick="showAllProducts()">
+        <!-- 🆕 CAMBIO: Usar href en lugar de onclick -->
+        <a href="/catalogo" class="gradient-bg hover:scale-105 transition-all duration-300 font-medium flex items-center space-x-2 px-6 py-3 rounded-xl text-white elegant-shadow">
           <span>Ver todos</span>
           <i class="fas fa-arrow-right"></i>
-        </button>
+        </a>
       </div>
       <div id="recomendadosGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         <!-- Los productos se cargan dinámicamente aquí -->

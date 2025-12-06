@@ -1,6 +1,6 @@
 # -- coding: utf-8 --
 """
-Blueprint del carrito de compras
+Blueprint del carrito de compras - CORREGIDO CON IMÁGENES
 Maneja vistas y rutas relacionadas con el carrito
 """
 
@@ -54,6 +54,43 @@ def get_or_create_cart_for_current_user():
     return obtener_o_crear_carrito(usuario_id=usuario_id, session_id=session_id)
 
 
+def item_to_dict_with_images(cart_item):
+    """
+    Convierte un CartItem a diccionario incluyendo imágenes del producto
+    
+    Args:
+        cart_item: CartItem object
+    
+    Returns:
+        dict con datos del item incluyendo producto e imágenes
+    """
+    base_dict = cart_item.to_dict()
+    
+    # ✅ Asegurar que el producto tiene imágenes correctamente formateadas
+    if hasattr(cart_item, 'producto') and cart_item.producto:
+        producto = cart_item.producto
+        
+        # Obtener imágenes
+        imagenes = []
+        if hasattr(producto, 'imagenes') and producto.imagenes:
+            for img in producto.imagenes:
+                img_dict = {
+                    'id': img.id if hasattr(img, 'id') else None,
+                    'url': img.nombre if hasattr(img, 'nombre') else (img.url if hasattr(img, 'url') else None),
+                    'nombre': img.nombre if hasattr(img, 'nombre') else None,
+                    'es_portada': img.es_portada if hasattr(img, 'es_portada') else False,
+                    'orden': img.orden if hasattr(img, 'orden') else 0
+                }
+                imagenes.append(img_dict)
+        
+        # Asegurar que el producto tiene imágenes en la respuesta
+        if 'producto' in base_dict:
+            base_dict['producto']['imagenes'] = imagenes
+            base_dict['producto']['id'] = producto.id if hasattr(producto, 'id') else None
+    
+    return base_dict
+
+
 # ===================== VISTAS =====================
 
 @bp_cart.route('/')
@@ -86,7 +123,7 @@ def vista_carrito():
                 'usuario_id': cart.usuario_id,
                 'session_id': cart.session_id,
                 'activo': cart.activo,
-                'items': [item.to_dict() for item in items_list],
+                'items': [item_to_dict_with_images(item) for item in items_list],
                 'total_items': sum(item.cantidad for item in items_list),
                 'subtotal': sum((item.cantidad * item.precio_unitario) / 100 for item in items_list)
             }
@@ -110,24 +147,7 @@ def vista_carrito():
 def api_obtener_carrito():
     """
     GET /api/cart
-    Obtiene el carrito actual con todos sus items
-    
-    Response:
-        {
-            "success": true,
-            "cart": {
-                "id": 1,
-                "items": [...],
-                "total_items": 3,
-                "subtotal": 206.00
-            },
-            "totales": {
-                "subtotal": 206.00,
-                "impuestos": 20.60,
-                "envio": 15.00,
-                "total": 241.60
-            }
-        }
+    Obtiene el carrito actual con todos sus items (INCLUYENDO IMÁGENES)
     """
     try:
         cart = get_or_create_cart_for_current_user()
@@ -145,7 +165,7 @@ def api_obtener_carrito():
             'usuario_id': cart.usuario_id,
             'session_id': cart.session_id,
             'activo': cart.activo,
-            'items': [item.to_dict() for item in items_list],
+            'items': [item_to_dict_with_images(item) for item in items_list],  # ✅ CON IMÁGENES
             'total_items': sum(item.cantidad for item in items_list),
             'subtotal': sum((item.cantidad * item.precio_unitario) / 100 for item in items_list)
         }
@@ -173,20 +193,6 @@ def api_agregar_producto():
     """
     POST /api/cart/add
     Agrega un producto al carrito
-    
-    Body:
-        {
-            "producto_id": 1,
-            "cantidad": 2
-        }
-    
-    Response:
-        {
-            "success": true,
-            "message": "Producto agregado al carrito",
-            "item": {...},
-            "cart_total_items": 5
-        }
     """
     try:
         data = request.get_json()
@@ -247,7 +253,7 @@ def api_agregar_producto():
         return jsonify({
             'success': True,
             'message': 'Producto agregado al carrito',
-            'item': item.to_dict(),
+            'item': item_to_dict_with_images(item),  # ✅ CON IMÁGENES
             'cart_total_items': totales['total_items'],
             'totales': totales
         }), 200
@@ -265,19 +271,6 @@ def api_actualizar_cantidad(item_id):
     """
     PUT /api/cart/update/<item_id>
     Actualiza la cantidad de un item en el carrito
-    
-    Body:
-        {
-            "cantidad": 3
-        }
-    
-    Response:
-        {
-            "success": true,
-            "message": "Cantidad actualizada",
-            "item": {...},
-            "totales": {...}
-        }
     """
     try:
         data = request.get_json()
@@ -319,7 +312,7 @@ def api_actualizar_cantidad(item_id):
         return jsonify({
             'success': True,
             'message': 'Cantidad actualizada',
-            'item': item.to_dict(),
+            'item': item_to_dict_with_images(item),  # ✅ CON IMÁGENES
             'totales': totales
         }), 200
         
@@ -336,13 +329,6 @@ def api_eliminar_producto(item_id):
     """
     DELETE /api/cart/remove/<item_id>
     Elimina un producto del carrito
-    
-    Response:
-        {
-            "success": true,
-            "message": "Producto eliminado del carrito",
-            "totales": {...}
-        }
     """
     try:
         from Modelo_de_Datos_PostgreSQL_y_CRUD.conexion_postgres import db
@@ -390,12 +376,6 @@ def api_vaciar_carrito():
     """
     DELETE /api/cart/clear
     Vacía completamente el carrito
-    
-    Response:
-        {
-            "success": true,
-            "message": "Carrito vaciado"
-        }
     """
     try:
         cart = get_or_create_cart_for_current_user()
@@ -434,19 +414,6 @@ def api_calcular_totales():
     """
     GET /api/cart/totales
     Calcula los totales del carrito actual
-    
-    Response:
-        {
-            "success": true,
-            "totales": {
-                "subtotal": 206.00,
-                "impuestos": 20.60,
-                "envio": 15.00,
-                "total": 241.60,
-                "total_items": 4,
-                "envio_gratis": false
-            }
-        }
     """
     try:
         cart = get_or_create_cart_for_current_user()

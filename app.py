@@ -1,6 +1,6 @@
-# -- coding: utf-8 --
+# -*- coding: utf-8 -*-
 # Archivo: app.py
-# Versión: 2.4.0 (Con Sistema de Carrito de Compras) - LIMPIO Y ORDENADO
+# Versión: 2.4.0 (Con Sistema de Carrito y Catálogo) - LIMPIO Y ORDENADO
 
 import os
 from dotenv import load_dotenv
@@ -81,7 +81,7 @@ mail.init_app(app)
 # MENSAJE DE INICIO
 # ============================
 print("\n" + "="*70)
-print("🚀 INICIALIZANDO PEAKSPORT CON SISTEMA DE CARRITO")
+print("🚀 INICIALIZANDO PEAKSPORT CON SISTEMA DE CARRITO Y CATÁLOGO")
 print("="*70)
 print(f"📍 Entorno: {FLASK_ENV}")
 print(f"📍 Debug: {DEBUG}")
@@ -100,9 +100,10 @@ from Apis.producto_main import bp_productos
 from Apis.resenas_api import bp_resenas_api
 from Administrador.principal.main import bp_administrador_principal
 from Seguridad.mfa import bp_mfa
-
-# 🆕 NUEVO: Importar blueprint del carrito
 from Cliente.Cart.main import bp_cart
+
+# 🆕 NUEVO: Importar blueprint del catálogo (carpeta Catalogo con mayúscula)
+from Cliente.Catalogo.main import bp_catalogo
 
 # ============================
 # REGISTRO DE BLUEPRINTS
@@ -114,11 +115,12 @@ app.register_blueprint(bp_productos, url_prefix='/api/productos')
 app.register_blueprint(bp_resenas_api, url_prefix='/api/resenas')
 app.register_blueprint(bp_administrador_principal, url_prefix='/administrador/principal')
 app.register_blueprint(bp_mfa, url_prefix='/mfa')
-
-# 🆕 NUEVO: Registrar blueprint del carrito
 app.register_blueprint(bp_cart, url_prefix='/cart')
 
-log_success("✅ Blueprints registrados correctamente (incluye carrito de compras)")
+# 🆕 NUEVO: Registrar blueprint del catálogo
+app.register_blueprint(bp_catalogo, url_prefix='/catalogo')
+
+log_success("✅ Blueprints registrados correctamente (incluye carrito y catálogo)")
 
 # ============================
 # RUTAS PRINCIPALES
@@ -155,7 +157,7 @@ def health_check():
             'database': 'connected',
             'version': '2.4.0',
             'environment': FLASK_ENV,
-            'features': ['productos', 'reseñas', 'usuarios', 'categorias', 'carrito']
+            'features': ['productos', 'reseñas', 'usuarios', 'categorias', 'carrito', 'catálogo']
         }), 200
         
     except Exception as e:
@@ -454,6 +456,7 @@ if __name__ == '__main__':
     print(f"📍 Puerto: 2323")
     print(f"📍 Entorno: {FLASK_ENV}")
     print(f"📍 Debug: {DEBUG}")
+    print(f"📍 Características: Productos | Reseñas | Usuarios | Categorías | Carrito | Catálogo")
     print("="*70 + "\n")
     
     app.run(
