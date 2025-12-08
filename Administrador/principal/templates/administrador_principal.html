@@ -52,6 +52,11 @@
           <i class="fas fa-plus-circle w-5"></i>
           <span class="font-medium">Agregar Producto</span>
         </a>
+        <a href="{{ url_for('administrador_principal.vista_resenas') }}" 
+           class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
+          <i class="fas fa-star w-5"></i>
+          <span class="font-medium">Reseñas</span>
+        </a>
         <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
           <i class="fas fa-truck w-5"></i>
           <span class="font-medium">Pedidos</span>
@@ -63,10 +68,6 @@
         <a href="{{ url_for('administrador_principal.vista_categorias') }}" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
           <i class="fas fa-tags w-5"></i>
           <span class="font-medium">Categorías</span>
-        </a>
-        <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
-          <i class="fas fa-users w-5"></i>
-          <span class="font-medium">Proveedores</span>
         </a>
         <a href="#" class="sidebar-item flex items-center space-x-3 px-4 py-3 rounded-lg text-white/80 hover:text-white">
           <i class="fas fa-cog w-5"></i>
@@ -290,4 +291,3 @@
 
 </body>
 </html>
-

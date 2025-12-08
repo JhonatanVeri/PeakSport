@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Controlador de Administrador (Principal) - VERSIÓN CORREGIDA
-CRUD de Productos, gestión de Imágenes y asociación con Categorías.
+Controlador de Administrador (Principal) - VERSIÓN COMPLETA CON RESEÑAS
+CRUD de Productos, gestión de Imágenes, Categorías y Gestión de Reseñas.
 
-CAMBIOS REALIZADOS:
-1. ✅ Importar @requiere_mfa desde utils
-2. ✅ Agregar @requiere_mfa a TODAS las rutas protegidas
-3. ✅ Reemplazar renderizar_vista_entorno_desarrollo_y_produccion() con renderizar_vista_protegida()
-4. ✅ Agregar logs de auditoría con usuario_correo
+IMPORTANTE: Este archivo debe reemplazar completamente el anterior
 """
 
 import os
@@ -19,7 +15,6 @@ from flask import (
 )
 from werkzeug.utils import secure_filename
 
-# ✅ CAMBIO 1: Importar decorador MFA
 from utils import renderizar_vista_protegida, requiere_mfa
 
 from Log_PeakSport import log_info, log_warning, log_error, log_critical
@@ -38,6 +33,8 @@ from Modelo_de_Datos_PostgreSQL_y_CRUD.Categorias import (
     Categoria,
     crear_categoria,
     listar_categorias,
+    actualizar_categoria,
+    eliminar_categoria,
 )
 from Modelo_de_Datos_PostgreSQL_y_CRUD.Producto_Imagenes import (
     ProductoImagen,
@@ -72,18 +69,12 @@ def _allowed_image(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
 
 def _requiere_admin():
-    """
-    Verifica rol de Administrador.
-    Acepta dos estilos de sesión:
-    - session['usuario'] = {'rol': 'Administrador', ...}
-    - o llaves sueltas: session['usuario_rol'] == 'Administrador'
-    """
+    """Verifica rol de Administrador."""
     user_dict = session.get("usuario") or {}
     rol = user_dict.get("rol") or session.get("usuario_rol")
     if rol != "Administrador":
         log_warning(f"[seguridad] Acceso denegado (no es admin): {session.get('usuario_correo')}")
         abort(403)
-
 
 def requiere_admin(fn):
     from functools import wraps
@@ -104,7 +95,7 @@ def registrar_rutas(bp):
     # ═══════════════════════════════════════════════════════
     
     @bp.route("/admin/productos", methods=["GET"])
-    @requiere_mfa  # ✅ NUEVO: Verifica MFA antes
+    @requiere_mfa
     @requiere_admin
     def vista_listado_productos():
         """Lista de productos con paginación y filtros"""
@@ -125,7 +116,6 @@ def registrar_rutas(bp):
         items, total = listar_productos(filtros=filtros, page=page, per_page=per_page)
         cats, _ = listar_categorias(padre_id=None, page=1, per_page=9999)
 
-        # ✅ Usar renderizar_vista_protegida en lugar de renderizar_vista_entorno_desarrollo_y_produccion
         return renderizar_vista_protegida(
             "administrador_principal.html",
             productos=items,
@@ -139,13 +129,12 @@ def registrar_rutas(bp):
         )
 
     @bp.route("/admin/productos/nuevo", methods=["GET"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def vista_nuevo_producto():
         """Formulario para crear nuevo producto"""
         cats, _ = listar_categorias(padre_id=None, page=1, per_page=9999)
         
-        # ✅ Cambiar a renderizar_vista_protegida
         return renderizar_vista_protegida(
             "administrador_principal_crear.html",
             producto=None,
@@ -154,7 +143,7 @@ def registrar_rutas(bp):
         )
 
     @bp.route("/admin/productos/<int:producto_id>/editar", methods=["GET"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def vista_editar_producto(producto_id: int):
         """Formulario para editar producto"""
@@ -165,7 +154,6 @@ def registrar_rutas(bp):
         cats, _ = listar_categorias(padre_id=None, page=1, per_page=9999)
         imgs = listar_imagenes_producto(producto_id)
 
-        # ✅ Cambiar a renderizar_vista_protegida
         return renderizar_vista_protegida(
             "administrador_principal_editar.html",
             producto=prod,
@@ -175,7 +163,7 @@ def registrar_rutas(bp):
         )
     
     @bp.route("/admin/productos/<int:producto_id>/eliminar", methods=["GET"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def vista_eliminar_producto(producto_id: int):
         """Vista de confirmación para eliminar producto"""
@@ -183,7 +171,6 @@ def registrar_rutas(bp):
         if not prod:
             abort(404)
         
-        # ✅ Cambiar a renderizar_vista_protegida
         return renderizar_vista_protegida(
             "administrador_principal_eliminar.html",
             producto=prod
@@ -194,7 +181,7 @@ def registrar_rutas(bp):
     # ═══════════════════════════════════════════════════════
     
     @bp.route("/api/admin/productos/<int:producto_id>/eliminar", methods=["DELETE"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def api_eliminar_producto(producto_id: int):
         """Elimina un producto (API)"""
@@ -209,7 +196,6 @@ def registrar_rutas(bp):
                     "error": f"No se pudo eliminar el producto con ID {producto_id}"
                 }), 400
 
-            # ✅ Log de auditoría mejorado
             log_info(f"[audit] Producto {producto_id} eliminado por {usuario_correo}")
             return jsonify({"ok": True, "mensaje": "Producto eliminado correctamente"}), 200
 
@@ -218,7 +204,7 @@ def registrar_rutas(bp):
             return jsonify({"ok": False, "error": "Error interno del servidor"}), 500
 
     @bp.route("/api/admin/productos", methods=["GET"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def api_listar_productos():
         """Lista productos en formato JSON (API)"""
@@ -240,14 +226,12 @@ def registrar_rutas(bp):
         data = []
         
         for p in items:
-            # Encontrar imagen portada
             imagen_portada = None
             for img in p.imagenes:
                 if img.es_portada:
                     imagen_portada = img.to_dict()["url"]
                     break
             
-            # Fallback a primera imagen
             if not imagen_portada and p.imagenes:
                 imagen_portada = p.imagenes[0].to_dict()["url"]
 
@@ -266,13 +250,12 @@ def registrar_rutas(bp):
                 "updated_at": p.updated_at.isoformat() if p.updated_at else None,
             })
         
-        # ✅ Log de auditoría
         log_info(f"[audit] API listar_productos accedida por {session.get('usuario_correo')}")
         
         return jsonify({"items": data, "total": total, "page": page, "per_page": per_page})
 
     @bp.route("/api/admin/productos", methods=["POST"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def api_crear_producto():
         """Crea nuevo producto (API)"""
@@ -324,13 +307,12 @@ def registrar_rutas(bp):
             log_warning(f"[audit] Error al crear producto '{nombre}' por {usuario_correo}")
             return jsonify({"ok": False, "error": "No fue posible crear el producto"}), 400
 
-        # ✅ Log de auditoría mejorado
         log_info(f"[audit] Producto '{slug}' creado por {usuario_correo}")
         
         return jsonify({"ok": True, "id": prod.id, "slug": prod.slug}), 201
     
     @bp.route("/api/admin/productos/<int:producto_id>", methods=["GET"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def api_detalle_producto(producto_id: int):
         """Obtiene detalles de un producto (API)"""
@@ -366,7 +348,7 @@ def registrar_rutas(bp):
         })
 
     @bp.route("/api/admin/productos/<int:producto_id>", methods=["PATCH"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def api_actualizar_producto(producto_id: int):
         """Actualiza un producto (API)"""
@@ -407,53 +389,92 @@ def registrar_rutas(bp):
             log_warning(f"[audit] Error al actualizar producto {producto_id} por {usuario_correo}")
             return jsonify({"ok": False, "error": "No fue posible actualizar"}), 400
         
-        # ✅ Log de auditoría
         log_info(f"[audit] Producto {producto_id} actualizado por {usuario_correo}")
         
         return jsonify({"ok": True})
     
     # ═══════════════════════════════════════════════════════
-    # API - CATEGORÍAS
+    # API - CATEGORÍAS (PRODUCTOS)
     # ═══════════════════════════════════════════════════════
 
     @bp.route("/api/admin/productos/<int:producto_id>/categorias", methods=["POST"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def api_agregar_categoria(producto_id: int):
         """Asocia categoría a producto (API)"""
-        payload = request.get_json(silent=True) or request.form.to_dict()
-        categoria_id = payload.get("categoria_id", type=int) if hasattr(payload, "get") else payload.get("categoria_id")
-        
         try:
-            categoria_id = int(categoria_id)
-        except Exception:
-            return jsonify({"ok": False, "error": "categoria_id inválido"}), 400
-
-        ok = agregar_categoria_a_producto(producto_id, categoria_id)
-        if not ok:
-            return jsonify({"ok": False, "error": "No fue posible asociar la categoría"}), 400
-        
-        log_info(f"[audit] Categoría {categoria_id} asociada a producto {producto_id}")
-        return jsonify({"ok": True})
+            usuario_correo = session.get('usuario_correo', 'desconocido')
+            
+            payload = request.get_json(silent=True)
+            if not payload:
+                payload = request.form.to_dict()
+            
+            if "categoria_id" not in payload:
+                log_warning(f"[audit] Falta categoria_id en request de {usuario_correo}")
+                return jsonify({"ok": False, "error": "categoria_id es requerido"}), 400
+            
+            try:
+                categoria_id = int(payload.get("categoria_id"))
+            except (ValueError, TypeError) as e:
+                log_warning(f"[audit] categoria_id inválido: {payload.get('categoria_id')} por {usuario_correo}")
+                return jsonify({"ok": False, "error": "categoria_id debe ser un número entero válido"}), 400
+            
+            prod = obtener_producto_por_id(producto_id)
+            if not prod:
+                log_warning(f"[audit] Producto {producto_id} no encontrado por {usuario_correo}")
+                return jsonify({"ok": False, "error": f"Producto {producto_id} no encontrado"}), 404
+            
+            cat = Categoria.query.get(categoria_id)
+            if not cat:
+                log_warning(f"[audit] Categoría {categoria_id} no encontrada por {usuario_correo}")
+                return jsonify({"ok": False, "error": f"Categoría {categoria_id} no encontrada"}), 404
+            
+            ok = agregar_categoria_a_producto(producto_id, categoria_id)
+            if not ok:
+                log_error(f"[audit] Error al asociar categoría {categoria_id} a producto {producto_id} por {usuario_correo}")
+                return jsonify({"ok": False, "error": "No fue posible asociar la categoría al producto"}), 400
+            
+            log_info(f"[audit] Categoría {categoria_id} asociada a producto {producto_id} por {usuario_correo}")
+            return jsonify({
+                "ok": True, 
+                "mensaje": f"Categoría '{cat.nombre}' asociada correctamente",
+                "producto_id": producto_id,
+                "categoria_id": categoria_id
+            }), 200
+            
+        except Exception as e:
+            log_error(f"[admin] Error inesperado en api_agregar_categoria: {e}")
+            import traceback
+            log_error(f"[admin] Traceback: {traceback.format_exc()}")
+            return jsonify({
+                "ok": False, 
+                "error": "Error interno del servidor",
+                "detalle": str(e) if current_app.debug else None
+            }), 500
 
     @bp.route("/api/admin/productos/<int:producto_id>/categorias/<int:categoria_id>", methods=["DELETE"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def api_quitar_categoria(producto_id: int, categoria_id: int):
         """Desasocia categoría de producto (API)"""
-        ok = quitar_categoria_de_producto(producto_id, categoria_id)
-        if not ok:
-            return jsonify({"ok": False, "error": "No fue posible remover la categoría"}), 400
-        
-        log_info(f"[audit] Categoría {categoria_id} removida de producto {producto_id}")
-        return jsonify({"ok": True})
+        try:
+            usuario_correo = session.get('usuario_correo', 'desconocido')
+            ok = quitar_categoria_de_producto(producto_id, categoria_id)
+            if not ok:
+                return jsonify({"ok": False, "error": "No fue posible remover la categoría"}), 400
+            
+            log_info(f"[audit] Categoría {categoria_id} removida de producto {producto_id} por {usuario_correo}")
+            return jsonify({"ok": True})
+        except Exception as e:
+            log_error(f"api_quitar_categoria ERROR: {e}")
+            return jsonify({"ok": False, "error": "Error interno"}), 500
 
     # ═══════════════════════════════════════════════════════
     # API - IMÁGENES
     # ═══════════════════════════════════════════════════════
 
     @bp.route("/api/admin/productos/<int:producto_id>/imagenes", methods=["GET"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def api_listar_imagenes(producto_id: int):
         """Lista imágenes de producto (API)"""
@@ -468,7 +489,7 @@ def registrar_rutas(bp):
         return jsonify({"ok": True, "items": data})
 
     @bp.route("/api/admin/productos/<int:producto_id>/imagenes", methods=["POST"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def api_subir_imagenes(producto_id: int):
         """Sube imágenes para un producto (API)"""
@@ -538,7 +559,7 @@ def registrar_rutas(bp):
         return jsonify({"ok": True, "creadas": creadas})
 
     @bp.route("/api/admin/imagenes/<int:imagen_id>", methods=["PATCH"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def api_actualizar_imagen(imagen_id: int):
         """Actualiza una imagen (API)"""
@@ -572,7 +593,7 @@ def registrar_rutas(bp):
         return jsonify({"ok": True})
 
     @bp.route("/api/admin/imagenes/<int:imagen_id>", methods=["DELETE"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def api_eliminar_imagen(imagen_id: int):
         """Elimina una imagen (API)"""
@@ -600,7 +621,7 @@ def registrar_rutas(bp):
     # ═══════════════════════════════════════════════════════
     
     @bp.route("/admin/categorias", methods=["GET"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def vista_categorias():
         """Lista de categorías"""
@@ -611,7 +632,6 @@ def registrar_rutas(bp):
 
             cats, total = listar_categorias(padre_id=padre_id, page=page, per_page=per_page)
             
-            # ✅ Usar renderizar_vista_protegida
             return renderizar_vista_protegida(
                 "administrador_principal_categorias.html",
                 categorias=cats,
@@ -624,11 +644,11 @@ def registrar_rutas(bp):
             return abort(500)
 
     # ═══════════════════════════════════════════════════════
-    # API - CRUD CATEGORÍAS
+    # API - CRUD CATEGORÍAS (INDEPENDIENTE)
     # ═══════════════════════════════════════════════════════
     
     @bp.route("/api/admin/categorias", methods=["GET"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def api_listar_categorias():
         """Lista categorías (API)"""
@@ -652,47 +672,49 @@ def registrar_rutas(bp):
             return jsonify({"ok": False, "error": "Error interno listando categorías"}), 500
 
     @bp.route("/api/admin/categorias", methods=["POST"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def api_crear_categoria():
         """Crea nueva categoría (API)"""
-        from Modelo_de_Datos_PostgreSQL_y_CRUD.Categorias import crear_categoria
-        
         try:
             usuario_correo = session.get('usuario_correo', 'desconocido')
             payload = request.get_json(silent=True) or request.form.to_dict()
+            
             nombre = (payload.get("nombre") or "").strip()
-            slug = (payload.get("slug") or "").strip().lower()
+            if not nombre:
+                return jsonify({"ok": False, "error": "El nombre es obligatorio"}), 400
+            
+            slug = (payload.get("slug") or _slugify(nombre)).strip()
             descripcion = payload.get("descripcion")
-
-            _padre = payload.get("padre_id")
+            padre_id = payload.get("padre_id")
+            
             try:
-                padre_id = int(_padre) if (_padre not in (None, "", "null")) else None
+                padre_id = int(padre_id) if padre_id not in (None, "", "null") else None
             except Exception:
                 padre_id = None
 
-            cat = crear_categoria(nombre=nombre, slug=slug, descripcion=descripcion, padre_id=padre_id)
+            cat = crear_categoria(
+                nombre=nombre,
+                slug=slug,
+                descripcion=descripcion,
+                padre_id=padre_id
+            )
+            
             if not cat:
                 log_warning(f"[audit] Error al crear categoría '{nombre}' por {usuario_correo}")
                 return jsonify({"ok": False, "error": "No fue posible crear la categoría"}), 400
             
             log_info(f"[audit] Categoría '{slug}' creada por {usuario_correo}")
-            return jsonify({"ok": True, "id": cat.id})
+            return jsonify({"ok": True, "id": cat.id, "slug": cat.slug}), 201
         except Exception as e:
             log_error(f"api_crear_categoria ERROR: {e}")
-            return jsonify({"ok": False, "error": "Error interno creando categoría"}), 500
-    
-    # ════════════════════════════════════════════════════════════
-    # CONTINUACIÓN: MÉTODOS DE ACTUALIZACIÓN Y ELIMINACIÓN CATEGORÍAS
-    # ════════════════════════════════════════════════════════════
+            return jsonify({"ok": False, "error": "Error interno"}), 500
 
     @bp.route("/api/admin/categorias/<int:categoria_id>", methods=["PATCH"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def api_actualizar_categoria(categoria_id: int):
         """Actualiza una categoría (API)"""
-        from Modelo_de_Datos_PostgreSQL_y_CRUD.Categorias import actualizar_categoria
-        
         try:
             usuario_correo = session.get('usuario_correo', 'desconocido')
             payload = request.get_json(silent=True) or request.form.to_dict()
@@ -721,12 +743,10 @@ def registrar_rutas(bp):
             return jsonify({"ok": False, "error": "Error interno actualizando categoría"}), 500
 
     @bp.route("/api/admin/categorias/<int:categoria_id>", methods=["DELETE"])
-    @requiere_mfa  # ✅ NUEVO
+    @requiere_mfa
     @requiere_admin
     def api_eliminar_categoria(categoria_id: int):
         """Elimina una categoría (API)"""
-        from Modelo_de_Datos_PostgreSQL_y_CRUD.Categorias import eliminar_categoria
-        
         try:
             usuario_correo = session.get('usuario_correo', 'desconocido')
             
@@ -741,4 +761,51 @@ def registrar_rutas(bp):
             log_error(f"api_eliminar_categoria ERROR: {e}")
             return jsonify({"ok": False, "error": "Error interno eliminando categoría"}), 500
 
+    # ═══════════════════════════════════════════════════════
+    # VISTAS HTML - RESEÑAS
+    # ═══════════════════════════════════════════════════════
+    
+    @bp.route("/admin/resenas", methods=["GET"])
+    @requiere_mfa
+    @requiere_admin
+    def vista_resenas():
+        """
+        Vista del gestor de reseñas con moderación
+        
+        URL: /admin/resenas
+        Métodos: GET
+        Protección: @requiere_mfa, @requiere_admin
+        
+        Template: administrador_resenas.html
+        Funcionalidad:
+        - Mostrar gestor de reseñas
+        - Cargar lista de reseñas desde API
+        - Permitir filtros, búsqueda y paginación
+        - Acciones de moderación (aprobar, rechazar, etc.)
+        """
+        try:
+            usuario_dict = session.get('usuario') or {}
+            usuario_nombre = usuario_dict.get('nombre_completo', 'Administrador')
+            usuario_rol = usuario_dict.get('rol') or session.get('usuario_rol')
+            usuario_correo = session.get('usuario_correo', 'desconocido')
+            
+            log_info(f"[audit] Vista reseñas accedida por {usuario_correo}")
+            
+            return renderizar_vista_protegida(
+                'administrador_resenas.html',
+                usuario_nombre=usuario_nombre,
+                usuario_rol=usuario_rol,
+                usuario_correo=usuario_correo
+            )
+        except Exception as e:
+            log_error(f"[admin] Error en vista_resenas: {e}")
+            import traceback
+            log_error(f"[admin] Traceback: {traceback.format_exc()}")
+            abort(500)
 
+    @bp.route("/resenas", methods=["GET"])
+    @requiere_mfa
+    @requiere_admin
+    def vista_resenas_alt():
+        """Alias alternativo para /admin/resenas"""
+        return redirect(url_for('administrador_principal.vista_resenas'))

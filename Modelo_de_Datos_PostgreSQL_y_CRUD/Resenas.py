@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Archivo: Modelo_de_Datos_PostgreSQL_y_CRUD/Resenas.py
-Descripción: Modelo y CRUD para reseñas de productos
-Autor: Sistema PicSport
-Versión: 1.0.0
+Descripción: Modelo y CRUD para reseñas de productos con moderación
+Autor: Sistema PeakSport
+Versión: 2.0.0 (Con sistema de moderación)
 """
 
 from typing import Optional, List, Tuple, Dict, Any
@@ -17,14 +17,16 @@ from Log_PeakSport import log_info, log_warning, log_error
 
 class Resena(db.Model):
     """
-    Modelo de reseñas de productos
+    Modelo de reseñas de productos con sistema de moderación
     
     Relaciones:
     - Muchos a Uno con Producto (una reseña pertenece a un producto)
     - Muchos a Uno con Usuario (una reseña es creada por un usuario)
+    - Muchos a Uno con Usuario (moderador que aprobó/rechazó)
     """
     __tablename__ = 'resenas'
 
+    # Campos originales
     id = db.Column(db.BigInteger, primary_key=True)
     producto_id = db.Column(
         db.BigInteger, 
@@ -51,6 +53,15 @@ class Resena(db.Model):
         nullable=False, 
         server_default=db.text("FALSE")
     )
+    
+    # ========== CAMPOS DE MODERACIÓN (NUEVOS) ==========
+    visible = db.Column(db.Boolean, default=True, server_default=db.text("TRUE"))
+    estado = db.Column(db.String(20), default='pendiente', server_default='pendiente')
+    motivo_moderacion = db.Column(db.Text)
+    num_reportes = db.Column(db.Integer, default=0, server_default='0')
+    moderado_por = db.Column(db.BigInteger, db.ForeignKey('usuarios.id', ondelete='SET NULL'))
+    moderado_at = db.Column(db.DateTime)
+    # ===================================================
     
     # Timestamps
     created_at = db.Column(
@@ -86,23 +97,36 @@ class Resena(db.Model):
         backref=db.backref('resenas', lazy='dynamic', cascade='all, delete-orphan')
     )
     usuario = db.relationship(
-        'Usuario', 
-        backref=db.backref('resenas', lazy='dynamic', cascade='all, delete-orphan')
+        'Usuario',
+        foreign_keys=[usuario_id],
+        backref='resenas_creadas'
+    )
+    moderador = db.relationship(
+        'Usuario',
+        foreign_keys=[moderado_por],
+        backref='resenas_moderadas'
     )
 
     def __repr__(self):
         return f"<Resena {self.id} prod={self.producto_id} user={self.usuario_id}>"
 
     def to_dict(self) -> Dict[str, Any]:
-        """Serializa la reseña para JSON"""
+        """Serializa la reseña para JSON (incluye campos de moderación)"""
         return {
             "id": self.id,
             "producto_id": self.producto_id,
+            "producto_nombre": self.producto.nombre if self.producto else None,
             "usuario_id": self.usuario_id,
             "usuario_nombre": self.usuario.nombre_completo if self.usuario else "Usuario",
             "calificacion": self.calificacion,
             "comentario": self.comentario,
             "compra_verificada": self.compra_verificada,
+            "visible": self.visible,
+            "estado": self.estado,
+            "motivo_moderacion": self.motivo_moderacion,
+            "num_reportes": self.num_reportes,
+            "moderado_por": self.moderado_por,
+            "moderado_at": self.moderado_at.isoformat() if self.moderado_at else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
             "tiempo_transcurrido": self._calcular_tiempo_transcurrido()
@@ -134,7 +158,7 @@ class Resena(db.Model):
             return "Hace un momento"
 
 
-# ===================== CRUD DE RESEÑAS =====================
+# ===================== CRUD DE RESEÑAS (ORIGINAL) =====================
 
 def crear_resena(
     producto_id: int,
@@ -144,7 +168,7 @@ def crear_resena(
     compra_verificada: bool = False
 ) -> Optional[Resena]:
     """
-    Crea una nueva reseña
+    Crea una nueva reseña con estado PENDIENTE (para moderación)
     
     Args:
         producto_id: ID del producto
@@ -194,13 +218,15 @@ def crear_resena(
             )
             return None
         
-        # Crear reseña
+        # Crear reseña con estado PENDIENTE
         nueva_resena = Resena(
             producto_id=producto_id,
             usuario_id=usuario_id,
             calificacion=calificacion,
             comentario=comentario.strip(),
-            compra_verificada=compra_verificada
+            compra_verificada=compra_verificada,
+            estado='pendiente',
+            visible=True
         )
         
         db.session.add(nueva_resena)
@@ -208,7 +234,7 @@ def crear_resena(
         
         log_info(
             f"Reseña creada: ID={nueva_resena.id} "
-            f"producto={producto_id} usuario={usuario_id}"
+            f"producto={producto_id} usuario={usuario_id} estado=pendiente"
         )
         return nueva_resena
         
@@ -236,22 +262,29 @@ def listar_resenas_producto(
     producto_id: int,
     page: int = 1,
     per_page: int = 10,
-    orden: str = 'recientes'
+    orden: str = 'recientes',
+    solo_visibles: bool = True
 ) -> Tuple[List[Resena], int]:
     """
     Lista las reseñas de un producto con paginación
+    ACTUALIZADO: Filtra por visible=True por defecto (solo aprobadas para público)
     
     Args:
         producto_id: ID del producto
         page: Número de página
         per_page: Reseñas por página
         orden: 'recientes', 'antiguas', 'mejor_calificadas', 'peor_calificadas'
+        solo_visibles: Si True, solo muestra reseñas aprobadas y visibles
     
     Returns:
         Tupla (lista_resenas, total_count)
     """
     try:
         query = Resena.query.filter_by(producto_id=producto_id)
+        
+        # Filtrar solo reseñas visibles (aprobadas) para el público
+        if solo_visibles:
+            query = query.filter_by(visible=True, estado='aprobada')
         
         # Ordenamiento
         if orden == 'recientes':
@@ -270,7 +303,7 @@ def listar_resenas_producto(
         
         log_info(
             f"listar_resenas_producto: producto={producto_id} "
-            f"page={page} total={total}"
+            f"page={page} total={total} solo_visibles={solo_visibles}"
         )
         return resenas, total
         
@@ -340,50 +373,25 @@ def actualizar_resena(
         return None
 
 
-def eliminar_resena(resena_id: int, usuario_id: Optional[int] = None) -> bool:
-    """
-    Elimina una reseña
-    
-    Args:
-        resena_id: ID de la reseña
-        usuario_id: ID del usuario (para verificar que sea el dueño)
-    
-    Returns:
-        True si se eliminó, False si no
-    """
-    try:
-        resena = db.session.get(Resena, resena_id)
-        if not resena:
-            log_warning(f"eliminar_resena: Reseña {resena_id} no encontrada")
-            return False
-        
-        # Verificar que el usuario sea el dueño de la reseña
-        if usuario_id is not None and resena.usuario_id != usuario_id:
-            log_warning(
-                f"eliminar_resena: Usuario {usuario_id} no es dueño de reseña {resena_id}"
-            )
-            return False
-        
-        db.session.delete(resena)
-        db.session.commit()
-        log_info(f"Reseña eliminada: {resena_id}")
-        return True
-        
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        log_error(f"Error al eliminar reseña {resena_id}: {str(e)}")
-        return False
-
-
-def obtener_estadisticas_producto(producto_id: int) -> Dict[str, Any]:
+def obtener_estadisticas_producto(producto_id: int, solo_visibles: bool = True) -> Dict[str, Any]:
     """
     Obtiene estadísticas de reseñas de un producto
+    ACTUALIZADO: Por defecto solo cuenta reseñas aprobadas
+    
+    Args:
+        producto_id: ID del producto
+        solo_visibles: Si True, solo cuenta reseñas aprobadas
     
     Returns:
         Dict con promedio, total, distribución por estrellas, etc.
     """
     try:
-        resenas = Resena.query.filter_by(producto_id=producto_id).all()
+        query = Resena.query.filter_by(producto_id=producto_id)
+        
+        if solo_visibles:
+            query = query.filter_by(visible=True, estado='aprobada')
+        
+        resenas = query.all()
         
         if not resenas:
             return {
@@ -442,3 +450,211 @@ def verificar_usuario_puede_resenar(producto_id: int, usuario_id: int) -> bool:
     except SQLAlchemyError as e:
         log_error(f"Error al verificar si usuario puede reseñar: {str(e)}")
         return False
+
+
+# ===================== FUNCIONES DE MODERACIÓN (NUEVAS) =====================
+
+def listar_resenas(
+    filtros: Optional[Dict[str, Any]] = None,
+    page: int = 1,
+    per_page: int = 20
+) -> Tuple[List[Resena], int]:
+    """
+    Lista reseñas con filtros avanzados (para administrador)
+    
+    Args:
+        filtros: Dict con claves: producto_id, estado, visible, q
+        page: Número de página
+        per_page: Elementos por página
+        
+    Returns:
+        Tupla (lista_resenas, total)
+    """
+    try:
+        filtros = filtros or {}
+        query = Resena.query
+        
+        if 'producto_id' in filtros:
+            query = query.filter(Resena.producto_id == filtros['producto_id'])
+        
+        if 'estado' in filtros and filtros['estado']:
+            query = query.filter(Resena.estado == filtros['estado'])
+        
+        if 'visible' in filtros:
+            query = query.filter(Resena.visible == filtros['visible'])
+        
+        if 'q' in filtros and filtros['q']:
+            q = f"%{filtros['q']}%"
+            query = query.filter(Resena.comentario.ilike(q))
+        
+        query = query.order_by(Resena.created_at.desc())
+        
+        total = query.count()
+        items = query.offset((page - 1) * per_page).limit(per_page).all()
+        
+        log_info(f"listar_resenas (admin): page={page}, per_page={per_page}, total={total}")
+        return items, total
+        
+    except SQLAlchemyError as e:
+        log_error(f"Error en listar_resenas: {str(e)}")
+        return [], 0
+
+
+def aprobar_resena(resena_id: int, moderador_id: int, motivo: Optional[str] = None) -> Optional[Resena]:
+    """
+    Aprueba una reseña.
+    Estado: aprobada, Visible: TRUE
+    """
+    try:
+        resena = db.session.get(Resena, resena_id)
+        if not resena:
+            log_warning(f"Reseña no encontrada para aprobar: {resena_id}")
+            return None
+        
+        resena.estado = 'aprobada'
+        resena.visible = True
+        resena.moderado_por = moderador_id
+        resena.moderado_at = datetime.utcnow()
+        if motivo:
+            resena.motivo_moderacion = motivo
+        
+        db.session.commit()
+        log_info(f"Reseña {resena_id} aprobada por usuario {moderador_id}")
+        return resena
+        
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        log_error(f"Error al aprobar reseña {resena_id}: {str(e)}")
+        return None
+
+
+def rechazar_resena(resena_id: int, moderador_id: int, motivo: Optional[str] = None) -> Optional[Resena]:
+    """
+    Rechaza una reseña.
+    Estado: rechazada, Visible: FALSE
+    """
+    try:
+        resena = db.session.get(Resena, resena_id)
+        if not resena:
+            log_warning(f"Reseña no encontrada para rechazar: {resena_id}")
+            return None
+        
+        resena.estado = 'rechazada'
+        resena.visible = False
+        resena.moderado_por = moderador_id
+        resena.moderado_at = datetime.utcnow()
+        if motivo:
+            resena.motivo_moderacion = motivo
+        
+        db.session.commit()
+        log_info(f"Reseña {resena_id} rechazada por usuario {moderador_id}")
+        return resena
+        
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        log_error(f"Error al rechazar reseña {resena_id}: {str(e)}")
+        return None
+
+
+def ocultar_resena(resena_id: int, moderador_id: int, motivo: Optional[str] = None) -> Optional[Resena]:
+    """
+    Oculta una reseña.
+    Estado: oculta, Visible: FALSE
+    """
+    try:
+        resena = db.session.get(Resena, resena_id)
+        if not resena:
+            log_warning(f"Reseña no encontrada para ocultar: {resena_id}")
+            return None
+        
+        resena.estado = 'oculta'
+        resena.visible = False
+        resena.moderado_por = moderador_id
+        resena.moderado_at = datetime.utcnow()
+        if motivo:
+            resena.motivo_moderacion = motivo
+        
+        db.session.commit()
+        log_info(f"Reseña {resena_id} ocultada por usuario {moderador_id}")
+        return resena
+        
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        log_error(f"Error al ocultar reseña {resena_id}: {str(e)}")
+        return None
+
+
+def restaurar_resena(resena_id: int, moderador_id: int) -> Optional[Resena]:
+    """
+    Restaura una reseña rechazada u ocultada.
+    Estado: aprobada, Visible: TRUE
+    """
+    try:
+        resena = db.session.get(Resena, resena_id)
+        if not resena:
+            log_warning(f"Reseña no encontrada para restaurar: {resena_id}")
+            return None
+        
+        resena.estado = 'aprobada'
+        resena.visible = True
+        resena.moderado_por = moderador_id
+        resena.moderado_at = datetime.utcnow()
+        resena.motivo_moderacion = None
+        
+        db.session.commit()
+        log_info(f"Reseña {resena_id} restaurada por usuario {moderador_id}")
+        return resena
+        
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        log_error(f"Error al restaurar reseña {resena_id}: {str(e)}")
+        return None
+
+
+def eliminar_resena(resena_id: int, usuario_id: Optional[int] = None) -> bool:
+    """
+    Elimina permanentemente una reseña de la base de datos.
+    Esta operación NO se puede deshacer.
+    
+    Args:
+        resena_id: ID de la reseña
+        usuario_id: ID del usuario (para verificar que sea el dueño, opcional)
+    
+    Returns:
+        True si se eliminó, False si no
+    """
+    try:
+        resena = db.session.get(Resena, resena_id)
+        if not resena:
+            log_warning(f"Reseña no encontrada para eliminar: {resena_id}")
+            return False
+        
+        # Verificar que el usuario sea el dueño de la reseña (si se proporciona)
+        if usuario_id is not None and resena.usuario_id != usuario_id:
+            log_warning(
+                f"eliminar_resena: Usuario {usuario_id} no es dueño de reseña {resena_id}"
+            )
+            return False
+        
+        db.session.delete(resena)
+        db.session.commit()
+        log_info(f"Reseña {resena_id} eliminada permanentemente")
+        return True
+        
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        log_error(f"Error al eliminar reseña {resena_id}: {str(e)}")
+        return False
+
+
+def to_dict(resena: Resena) -> Dict[str, Any]:
+    """
+    Convierte una reseña a diccionario para API (alias de to_dict del modelo)
+    
+    Args:
+        resena: Objeto Resena
+        
+    Returns:
+        Diccionario con todos los campos de la reseña
+    """
+    return resena.to_dict()

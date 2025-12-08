@@ -1,10 +1,9 @@
-# Modelo_de_Datos_PostgreSQL_y_CRUD/_init_.py
-# -- coding: utf-8 --
+# -*- coding: utf-8 -*-
 """
 Inicialización del paquete de modelos
 Importa todos los modelos para que estén disponibles
+VERSIÓN 2.5.1 - Con Password Reset
 """
-
 from Modelo_de_Datos_PostgreSQL_y_CRUD.conexion_postgres import db
 
 # Importar modelos existentes
@@ -17,14 +16,19 @@ from Modelo_de_Datos_PostgreSQL_y_CRUD.Resenas import Resena
 # 🆕 NUEVO: Importar modelos del carrito
 from Modelo_de_Datos_PostgreSQL_y_CRUD.Cart import Cart, CartItem
 
+# 🆕 NUEVO: Importar modelo de password reset
+# ✅ CORREGIDO: Usando "passwordreset" (sin guion bajo)
+from Modelo_de_Datos_PostgreSQL_y_CRUD.password_reset import PasswordResetToken
+
 # Exportar todos los modelos
-_all_ = [
+__all__ = [
     'db',
     'Usuario',
     'Producto',
     'ProductoImagen',
     'Categoria',
     'Resena',
-    'Cart',      # 🆕 NUEVO
-    'CartItem'   # 🆕 NUEVO
+    'Cart',
+    'CartItem',
+    'PasswordResetToken'  # 🆕 AGREGADO
 ]

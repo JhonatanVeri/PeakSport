@@ -53,8 +53,11 @@ function changeMainImage(src) {
     btn.classList.add('border-transparent', 'opacity-60');
   });
   
-  event.target.closest('.thumbnail-btn')?.classList.remove('border-transparent', 'opacity-60');
-  event.target.closest('.thumbnail-btn')?.classList.add('border-red-500', 'opacity-100');
+  const clickedBtn = event?.target?.closest('.thumbnail-btn');
+  if (clickedBtn) {
+    clickedBtn.classList.remove('border-transparent', 'opacity-60');
+    clickedBtn.classList.add('border-red-500', 'opacity-100');
+  }
 }
 
 // ===================== CANTIDAD =====================
@@ -221,7 +224,7 @@ async function loadReviews(page = 1) {
     totalPages = data.data.total_pages;
     reviewsData = data.data;
     
-    // Renderizar estadísticas
+    // Renderizar estadísticas - PASAMOS TODO EL OBJETO stats
     renderReviewStats(data.data.estadisticas);
     
     // Renderizar lista de reseñas
@@ -259,14 +262,53 @@ async function loadReviews(page = 1) {
         </div>
       `;
     }
+    
+    // Renderizar estadísticas vacías
+    renderReviewStats(null);
   }
 }
 
+// ✅ FUNCIÓN COMPLETAMENTE CORREGIDA
 function renderReviewStats(stats) {
   const statsContainer = document.getElementById('reviewStats');
-  if (!statsContainer || !stats) return;
+  if (!statsContainer) return;
   
-  const { total, promedio, distribucion, porcentajes } = stats;
+  // ✅ SOLUCIÓN: Validar que stats existe antes de desestructurar
+  if (!stats || typeof stats !== 'object') {
+    // Si no hay stats, mostrar contenedor vacío o mensaje
+    statsContainer.innerHTML = `
+      <div class="glass-card rounded-xl p-6">
+        <div class="text-center mb-6">
+          <div class="text-5xl font-bold text-red-400 mb-2">0.0</div>
+          <div class="flex justify-center star-rating text-2xl mb-2">
+            ${generateStarHTML(0)}
+          </div>
+          <p class="text-gray-400">Sin reseñas aún</p>
+        </div>
+      </div>
+      
+      <div class="space-y-3">
+        ${[5, 4, 3, 2, 1].map(estrella => `
+          <div class="flex items-center space-x-3">
+            <span class="text-sm text-gray-400 w-8">${estrella}★</span>
+            <div class="flex-1 progress-bar">
+              <div class="progress-fill" style="width: 0%"></div>
+            </div>
+            <span class="text-sm text-gray-400 w-12">0</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    return;
+  }
+  
+  // ✅ Ahora desestructuramos con valores por defecto
+  const {
+    total = 0,
+    promedio = 0,
+    distribucion = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+    porcentajes = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+  } = stats;
   
   statsContainer.innerHTML = `
     <div class="glass-card rounded-xl p-6">
@@ -662,3 +704,5 @@ document.addEventListener('click', function(e) {
     closeReviewModal();
   }
 });
+
+console.log('✅ producto_detalle.js cargado correctamente');

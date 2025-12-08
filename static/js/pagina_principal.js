@@ -1,8 +1,8 @@
 // =======================================
 // pagina_principal.js - VERSIÓN 3.0 COMPLETA CORREGIDA
+// =======================================
 // Sistema integral de carrito, productos, autenticación y navegación
 // Estado: Productos + Carrito + Menús + Modales - TODO FUNCIONANDO
-// 🆕 ACTUALIZADO: Con integración a catálogo en /catalogo
 
 // ---------- CONSTANTES DE ENTORNO (Inyectadas por HTML) ----------
 const IS_LOGGED = typeof window !== "undefined" ? !!window.__LOGGED__ : false;
@@ -13,8 +13,8 @@ const USER_EMAIL = typeof window !== "undefined" ? (window.__USER_EMAIL__ || nul
 const LOGIN_URL = typeof window !== "undefined" ? (window.__LOGIN_URL__ || "/login/") : "/login/";
 const LOGOUT_URL = typeof window !== "undefined" ? (window.__LOGOUT_URL__ || "/login/auth/logout") : "/login/auth/logout";
 
-// APIs - 🆕 ACTUALIZADO
-const API_PRODUCTOS = "/catalogo/api/productos";
+// APIs
+const API_PRODUCTOS = "/api/productos";
 const API_CARRITO = "/cart/api/cart";
 
 // ---------- ESTADO GLOBAL ----------
@@ -172,7 +172,6 @@ async function cargarProductos(pagina = 1, limpiar = true) {
  */
 async function cargarRecomendados() {
   try {
-    // 🆕 Usar la ruta correcta del catálogo
     const data = await fetchJSON(`${API_PRODUCTOS}/recomendados`);
     const grid = document.getElementById('recomendadosGrid');
     if (!grid) return;
@@ -205,14 +204,17 @@ async function cargarRecomendados() {
  */
 async function showAllProducts(page = 1) {
   try {
-    showAdvancedNotification('🛍 Catálogo', 'Redirigiendo al catálogo...', 'info');
-    // Redirigir al catálogo en lugar de cargar en esta página
-    setTimeout(() => {
-      window.location.href = '/catalogo';
-    }, 1000);
+    showAdvancedNotification('🛍 Catálogo', 'Cargando productos...', 'info');
+    const data = await fetchJSON(`${API_PRODUCTOS}/list?page=${page}&per_page=${PRODUCTOS_POR_PAGINA}`);
+    const grid = document.getElementById('recomendadosGrid');
+    if (!grid) return;
+    
+    const items = (data && data.productos) ? data.productos : [];
+    grid.innerHTML = items.map(cardHtml).join('');
+    showAdvancedNotification('✅ Listo', `Mostrando ${items.length} de ${data.total}`, 'success');
   } catch (e) {
     console.error('Error en showAllProducts:', e);
-    showAdvancedNotification('⚠ Error', 'No se pudo redirigir al catálogo', 'error');
+    showAdvancedNotification('⚠ Error', 'No se pudo cargar el catálogo', 'error');
   }
 }
 
@@ -221,7 +223,7 @@ async function showAllProducts(page = 1) {
  */
 function cardHtml(p) {
   // Manejar imagen
-  const img = p.image || (p.imagenes && p.imagenes[0] ? p.imagenes[0].url : null) || (p.imagen ? p.imagen.url : null) || 'https://via.placeholder.com/300x300?text=PeakSport';
+  const img = p.image || (p.imagenes && p.imagenes[0] ? p.imagenes[0].url : null) || 'https://via.placeholder.com/300x300?text=PeakSport';
   
   // Manejar rating
   const rating = (p.rating ?? 4.7).toFixed(1);
@@ -298,7 +300,7 @@ function cardHtml(p) {
  */
 async function verDetalle(slug) {
   try {
-    const data = await fetchJSON(`${API_PRODUCTOS}/slug/${slug}`);
+    const data = await fetchJSON(`${API_PRODUCTOS}/${slug}`);
     if (data && data.success) {
       window.location.href = `/producto/${slug}`;
     } else {
@@ -565,6 +567,8 @@ function navigateTo(section) {
 
   if (section === 'products') {
     showAllProducts();
+    const grid = document.getElementById('recomendadosGrid');
+    if (grid) window.scrollTo({ top: grid.offsetTop - 120, behavior: 'smooth' });
   }
 }
 
@@ -621,7 +625,7 @@ async function logout() {
 // ---------- INICIALIZACIÓN ----------
 
 document.addEventListener('DOMContentLoaded', function () {
-  console.log('🚀 Inicializando PeakSport página principal...');
+  console.log('🚀 Inicializando PeakSport...');
   console.log('Usuario logueado:', IS_LOGGED);
   
   // Cargar recomendados
@@ -656,4 +660,4 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 
-console.log('✅ PeakSport página principal inicializado correctamente');
+console.log('✅ PeakSport inicializado correctamente');

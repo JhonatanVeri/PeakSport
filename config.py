@@ -20,6 +20,8 @@ ON_RENDER = os.getenv("RENDER") == "true"
 SQLALCHEMY_CONFIG = {
     'SQLALCHEMY_DATABASE_URI': POSTGRES_URI,
     'SQLALCHEMY_TRACK_MODIFICATIONS': False,
+    # 🔧 CRÍTICO: Evitar que los objetos se expiren después de commit
+    'SQLALCHEMY_EXPIRE_ON_COMMIT': False,  # ✅ AGREGADO
 }
 
 # ===============================

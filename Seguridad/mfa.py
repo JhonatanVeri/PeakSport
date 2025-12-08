@@ -2,7 +2,7 @@
 """
 Seguridad/mfa.py - Blueprint MFA CORREGIDO
 Autenticación multifactor obligatoria.
-VERSIÓN: 2.1.0 - Sin session.regenerate() para FileSystemSession
+VERSIÓN: 2.2.0 - Con fix para session sync
 """
 
 from flask import Blueprint, render_template, session, request, redirect, url_for, flash
@@ -64,6 +64,8 @@ def verificar_codigo():
     usuario_nombre = session.get("usuario_nombre")
     usuario_id = session.get("usuario_id")
     
+    log_info(f"[MFA] verificar_codigo: usuario_correo={usuario_correo}, logged_in={session.get('logged_in')}, mfa_verificado={session.get('mfa_verificado')}")
+    
     if not usuario_correo or not usuario_id:
         log_warning("[MFA] Acceso a /verificar-codigo sin sesión válida")
         flash("❌ Sesión inválida. Por favor, inicia sesión nuevamente.", "alert")
@@ -79,6 +81,8 @@ def verificar_codigo():
         codigo_ingresado = request.form.get("codigo", "").strip()
         codigo_esperado = session.get("codigo_mfa")
         vencimiento = session.get("mfa_expira")
+        
+        log_info(f"[MFA] POST: Código ingresado={codigo_ingresado}, esperado={codigo_esperado}")
         
         # Rate limiting
         ok_rate, msg_rate = _verificar_rate_limit(usuario_id)
@@ -109,32 +113,11 @@ def verificar_codigo():
             return redirect(url_for("mfa.verificar_codigo"))
         
         # ✅ CÓDIGO VÁLIDO Y NO EXPIRADO
+        log_info(f"[MFA] Código válido para {usuario_correo}")
         
-        # ✅ REGENERACIÓN MANUAL DE SESIÓN (Compatible con FileSystemSession)
-        datos_usuario = {
-            'usuario_id': session.get('usuario_id'),
-            'usuario_correo': session.get('usuario_correo'),
-            'usuario_nombre': session.get('usuario_nombre'),
-            'usuario_rol': session.get('usuario_rol'),
-            'logged_in': True,
-            'mfa_verificado': True
-        }
-        
-        # Guardar destino antes de limpiar
-        destino = session.get("destino_post_mfa")
-        
-        # Limpiar sesión completa
-        session.clear()
-        
-        # Restaurar datos del usuario
-        for key, value in datos_usuario.items():
-            session[key] = value
-        
-        # Restaurar destino si existía
-        if destino:
-            session["destino_post_mfa"] = destino
-        
-        session.permanent = True
+        # ✅ MARCAR MFA COMO VERIFICADO (SIN LIMPIAR SESIÓN)
+        session['mfa_verificado'] = True
+        session.modified = True  # ✅ FORZAR SYNC DE SESIÓN
         
         # Limpiar rate limiting
         INTENTOS_MFA.pop(usuario_id, None)
@@ -150,11 +133,13 @@ def verificar_codigo():
             params = destino.get("params", {})
             query_string = "&".join([f"{k}={v}" for k, v in params.items()])
             url_destino = f"{ruta}?{query_string}" if query_string else ruta
-            log_info(f"[MFA] Redirigiendo a {url_destino}")
+            log_info(f"[MFA] Redirigiendo a destino guardado: {url_destino}")
             return redirect(url_destino)
         
         # Fallback: redirige al dashboard según rol
         rol = session.get("usuario_rol")
+        log_info(f"[MFA] Redirigiendo a dashboard (rol={rol})")
+        
         if rol == "Administrador":
             return redirect(url_for("administrador_principal.vista_listado_productos"))
         else:
@@ -162,6 +147,8 @@ def verificar_codigo():
 
 
     # ========== GET: GENERAR Y ENVIAR CÓDIGO ==========
+    log_info(f"[MFA] GET: Generando código para {usuario_correo}")
+    
     codigo = f"{random.randint(100000, 999999)}"
     
     # Guardar en sesión con expiración
@@ -170,6 +157,9 @@ def verificar_codigo():
     
     session["codigo_mfa"] = codigo
     session["mfa_expira"] = vencimiento
+    session.modified = True  # ✅ FORZAR SYNC
+    
+    log_info(f"[MFA] Código generado: {codigo}, vence: {vencimiento}")
     
     try:
         # Enviar correo

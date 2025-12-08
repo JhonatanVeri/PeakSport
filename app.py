@@ -1,6 +1,17 @@
 # -*- coding: utf-8 -*-
 # Archivo: app.py
-# Versión: 2.4.0 (Con Sistema de Carrito y Catálogo) - LIMPIO Y ORDENADO
+# Versión: 2.5.0 (Con Sistema de Carrito, Catálogo y Password Reset)
+
+import sys
+import io
+
+# ============================
+# FIX UTF-8 PARA WINDOWS
+# ============================
+# Configurar UTF-8 para la salida estándar (soluciona problemas con emojis en Windows)
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 import os
 from dotenv import load_dotenv
@@ -11,7 +22,7 @@ import click
 import traceback
 
 from Log_PeakSport import log_error, log_success
-from extensiones import mail  # extiende mail (no contiene la instancia db en este proyecto)
+from extensiones import mail
 load_dotenv()
 
 # Importar configuración
@@ -25,23 +36,26 @@ from config import (
 # -----------------------------
 from Modelo_de_Datos_PostgreSQL_y_CRUD.conexion_postgres import db
 
-# Importar modelos (incluyendo los nuevos modelos de carrito)
+# Importar modelos (incluyendo los nuevos modelos de carrito y password reset)
 from Modelo_de_Datos_PostgreSQL_y_CRUD import (
     Usuarios,
     Productos,
     Producto_Imagenes,
     Categorias,
     Resena,
-    Cart,       # 🆕 NUEVO
-    CartItem    # 🆕 NUEVO
+    Cart,
+    CartItem
 )
 from Modelo_de_Datos_PostgreSQL_y_CRUD.associations import producto_categorias
+
+# 🆕 NUEVO: Importar modelo de password reset
+from Modelo_de_Datos_PostgreSQL_y_CRUD.password_reset import PasswordResetToken
 
 # ============================
 # CREAR APP
 # ============================
 
-app = Flask(__name__)  # ✅ CORREGIDO: __name__ (doble guion bajo)
+app = Flask(__name__)
 
 # Aplicar configuración de BD
 for key, value in SQLALCHEMY_CONFIG.items():
@@ -59,7 +73,7 @@ app.config['DEBUG'] = DEBUG
 app.config['SESSION_FILE_DIR'] = os.path.join(os.getcwd(), 'flask_session')
 app.config['SESSION_FILE_THRESHOLD'] = 500
 
-# Inicializar db (la instancia viene de conexion_postgres)
+# Inicializar db
 db.init_app(app)
 
 # Inicializar sesiones
@@ -78,10 +92,20 @@ app.config["MAIL_DEFAULT_SENDER"] = MAIL_DEFAULT_SENDER
 mail.init_app(app)
 
 # ============================
+# INICIALIZAR EMAIL SERVICE
+# ============================
+# 🆕 NUEVO: Inicializar servicio de email (Gmail local + SendGrid producción)
+from services.email_service import init_email_service
+init_email_service(app)
+
+# ============================
 # MENSAJE DE INICIO
 # ============================
 print("\n" + "="*70)
-print("🚀 INICIALIZANDO PEAKSPORT CON SISTEMA DE CARRITO Y CATÁLOGO")
+print("🚀 INICIALIZANDO PEAKSPORT v2.5.0")
+print("   - Sistema de Carrito")
+print("   - Catálogo de Productos")
+print("   - Recuperación de Contraseña")
 print("="*70)
 print(f"📍 Entorno: {FLASK_ENV}")
 print(f"📍 Debug: {DEBUG}")
@@ -101,9 +125,10 @@ from Apis.resenas_api import bp_resenas_api
 from Administrador.principal.main import bp_administrador_principal
 from Seguridad.mfa import bp_mfa
 from Cliente.Cart.main import bp_cart
-
-# 🆕 NUEVO: Importar blueprint del catálogo (carpeta Catalogo con mayúscula)
 from Cliente.Catalogo.main import bp_catalogo
+
+# 🆕 NUEVO: Importar blueprint de password reset
+from Apis.password_reset_api import password_reset_bp
 
 # ============================
 # REGISTRO DE BLUEPRINTS
@@ -116,11 +141,12 @@ app.register_blueprint(bp_resenas_api, url_prefix='/api/resenas')
 app.register_blueprint(bp_administrador_principal, url_prefix='/administrador/principal')
 app.register_blueprint(bp_mfa, url_prefix='/mfa')
 app.register_blueprint(bp_cart, url_prefix='/cart')
-
-# 🆕 NUEVO: Registrar blueprint del catálogo
 app.register_blueprint(bp_catalogo, url_prefix='/catalogo')
 
-log_success("✅ Blueprints registrados correctamente (incluye carrito y catálogo)")
+# 🆕 NUEVO: Registrar blueprint de password reset
+app.register_blueprint(password_reset_bp)
+
+log_success("✅ Blueprints registrados correctamente (v2.5.0)")
 
 # ============================
 # RUTAS PRINCIPALES
@@ -144,6 +170,29 @@ def pagina_principal():
         return "<h1>Error cargando la página</h1>", 500
 
 
+# 🆕 NUEVO: Rutas HTML para password reset
+@app.route('/forgot-password')
+def forgot_password_page():
+    """Página para solicitar recuperación de contraseña"""
+    try:
+        return render_template('forgot_password.html')
+    except Exception as e:
+        log_error(f"[public] forgot_password_page error: {e}")
+        return "<h1>Error cargando la página</h1>", 500
+
+
+@app.route('/reset-password')
+def reset_password_page():
+    """Página para restablecer contraseña con token"""
+    try:
+        from flask import request
+        token = request.args.get('token')
+        return render_template('reset_password.html', token=token)
+    except Exception as e:
+        log_error(f"[public] reset_password_page error: {e}")
+        return "<h1>Error cargando la página</h1>", 500
+
+
 @app.route('/health')
 def health_check():
     """Endpoint para verificar salud de la aplicación"""
@@ -155,9 +204,17 @@ def health_check():
         return jsonify({
             'status': 'healthy',
             'database': 'connected',
-            'version': '2.4.0',
+            'version': '2.5.0',
             'environment': FLASK_ENV,
-            'features': ['productos', 'reseñas', 'usuarios', 'categorias', 'carrito', 'catálogo']
+            'features': [
+                'productos', 
+                'reseñas', 
+                'usuarios', 
+                'categorias', 
+                'carrito', 
+                'catálogo',
+                'password_reset'  # 🆕 NUEVO
+            ]
         }), 200
         
     except Exception as e:
@@ -220,7 +277,7 @@ def inject_config():
     """Inyectar variables globales en templates"""
     return {
         'app_name': 'PeakSport',
-        'app_version': '2.4.0',
+        'app_version': '2.5.0',
         'logged_in': session.get('logged_in', False) or session.get('mfa_verificado', False),
         'usuario_nombre': session.get('usuario_nombre', ''),
         'usuario_id': session.get('usuario_id'),
@@ -229,14 +286,14 @@ def inject_config():
 
 
 # ============================
-# COMANDOS CLI (UNIFICADOS, SIN DUPLICADOS)
+# COMANDOS CLI
 # ============================
 
 @app.cli.command('test-conexion')
 @with_appcontext
 def test_conexion():
-    """Comando: flask test-conexion - Prueba conexión a Railway/Render"""
-    click.echo("\n🔍 Probando conexión a Railway/Render...")
+    """Comando: flask test-conexion - Prueba conexión a BD"""
+    click.echo("\n🔍 Probando conexión a BD...")
     try:
         result = db.session.execute(db.text("SELECT version()"))
         version = result.fetchone()[0]
@@ -250,11 +307,12 @@ def test_conexion():
 @app.cli.command('crear-tablas')
 @with_appcontext
 def crear_tablas():
-    """Comando: flask crear-tablas - Crea todas las tablas en Railway/Render"""
-    click.echo("\n📦 Creando tablas en Railway/Render...")
+    """Comando: flask crear-tablas - Crea todas las tablas en BD"""
+    click.echo("\n📦 Creando tablas en BD...")
     try:
         db.create_all()
-        click.echo("✅ Tablas creadas correctamente (incluye tablas de carrito)")
+        click.echo("✅ Tablas creadas correctamente")
+        click.echo("   Incluye: usuarios, productos, carrito, password_reset_tokens")
     except Exception as e:
         click.echo(f"❌ Error: {e}")
         traceback.print_exc()
@@ -272,12 +330,12 @@ def verificar_modelos():
             ('ProductoImagenes', Producto_Imagenes),
             ('Categorias', Categorias),
             ('Resenas', Resena),
-            ('Cart', Cart),          # 🆕 NUEVO
-            ('CartItem', CartItem)   # 🆕 NUEVO
+            ('Cart', Cart),
+            ('CartItem', CartItem),
+            ('PasswordResetToken', PasswordResetToken),  # 🆕 NUEVO
         ]
         
         for nombre, modelo in modelos:
-            # Intentamos leer __tablename__ si existe, si no mostramos repr del modelo
             tabla = getattr(modelo, "__tablename__", repr(modelo))
             click.echo(f"   ✓ {nombre}: {tabla}")
         
@@ -306,16 +364,17 @@ def inspeccionar_bd():
             click.echo(f"\n📋 {tabla}:")
             click.echo(f"   Columnas: {', '.join(columnas)}")
         
-        # Verificar específicamente el carrito
-        if 'carts' in tablas_bd or 'cart' in tablas_bd:
+        # Verificar tablas importantes
+        if 'carts' in tablas_bd:
             click.echo("\n✅ Tabla 'carts' existe")
         else:
             click.echo("\n❌ Tabla 'carts' NO existe")
         
-        if 'cart_items' in tablas_bd or 'cart_item' in tablas_bd:
-            click.echo("✅ Tabla 'cart_items' existe")
+        if 'password_reset_tokens' in tablas_bd:  # 🆕 NUEVO
+            click.echo("✅ Tabla 'password_reset_tokens' existe")
         else:
-            click.echo("❌ Tabla 'cart_items' NO existe")
+            click.echo("❌ Tabla 'password_reset_tokens' NO existe")
+            
     except Exception as e:
         click.echo(f"❌ Error inspeccionando BD: {e}")
         traceback.print_exc()
@@ -327,10 +386,8 @@ def test_producto():
     """Prueba cargar un producto con todas sus relaciones."""
     click.echo("\n🔧 test-producto")
     try:
-        # Intentamos localizar la clase Producto de forma flexible
         Producto = None
         try:
-            # si tu módulo Productos define la clase Producto o Productos, probamos ambas
             from Modelo_de_Datos_PostgreSQL_y_CRUD.Productos import Producto as P1
             Producto = P1
         except Exception:
@@ -341,7 +398,7 @@ def test_producto():
                 Producto = None
 
         if Producto is None:
-            click.echo("❌ No se pudo importar la clase Producto. Revisa Modelo_de_Datos_PostgreSQL_y_CRUD.Productos")
+            click.echo("❌ No se pudo importar la clase Producto")
             return
 
         producto = Producto.query.first()
@@ -352,22 +409,13 @@ def test_producto():
         
         click.echo(f"\n✅ Producto: {getattr(producto, 'nombre', 'N/A')}")
         click.echo(f"   ID: {getattr(producto, 'id', 'N/A')}")
-        precio_centavos = getattr(producto, 'precio_centavos', None)
-        if precio_centavos is not None:
-            try:
-                click.echo(f"   Precio: {precio_centavos / 100}")
-            except Exception:
-                click.echo(f"   Precio: {precio_centavos} (no divisible por 100)")
-        click.echo(f"   Stock: {getattr(producto, 'stock', 'N/A')}")
         
-        # Test imagenes
         try:
             imgs = list(getattr(producto, 'imagenes', []))
             click.echo(f"   Imágenes: {len(imgs)}")
         except Exception as e:
             click.echo(f"   ❌ Error en imágenes: {e}")
         
-        # Test categorias
         try:
             cats = list(getattr(producto, 'categorias', []))
             click.echo(f"   Categorías: {len(cats)}")
@@ -385,9 +433,8 @@ def test_carrito():
     """Prueba crear un carrito de prueba."""
     click.echo("\n🔧 test-carrito")
     try:
-        # Import de modelos usando las rutas del paquete
         from Modelo_de_Datos_PostgreSQL_y_CRUD.Cart import Cart as CartModel, CartItem as CartItemModel
-        # Producto puede venir de distinto nombre; intentamos importarlo como en test-producto
+        
         Producto = None
         try:
             from Modelo_de_Datos_PostgreSQL_y_CRUD.Productos import Producto as P1
@@ -410,7 +457,6 @@ def test_carrito():
         else:
             click.echo(f"✅ Carrito existente: ID {cart.id}")
         
-        # Agregar producto de prueba si existe
         if Producto:
             producto = Producto.query.first()
             if producto:
@@ -432,7 +478,6 @@ def test_carrito():
                 else:
                     click.echo(f"✅ Item ya existe: {getattr(producto, 'nombre', 'N/A')}")
         
-        # Mostrar contenido
         items = CartItemModel.query.filter_by(cart_id=cart.id).all()
         click.echo(f"\n📦 Items en carrito: {len(items)}")
         
@@ -450,13 +495,14 @@ def test_carrito():
 # ============================
 if __name__ == '__main__':
     print("\n" + "="*70)
-    print("🚀 INICIANDO PEAKSPORT")
+    print("🚀 INICIANDO PEAKSPORT v2.5.0")
     print("="*70)
     print(f"📍 Host: 0.0.0.0")
     print(f"📍 Puerto: 2323")
     print(f"📍 Entorno: {FLASK_ENV}")
     print(f"📍 Debug: {DEBUG}")
-    print(f"📍 Características: Productos | Reseñas | Usuarios | Categorías | Carrito | Catálogo")
+    print(f"📍 Características: Productos | Reseñas | Usuarios | Categorías")
+    print(f"                    Carrito | Catálogo | Password Reset")
     print("="*70 + "\n")
     
     app.run(

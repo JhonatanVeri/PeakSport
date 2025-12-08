@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-utils.py - VERSIÓN CORRECTA (SIN BUCLE)
-Funciones auxiliares: MFA, validaciones, renderizado
+utils.py - VERSIÓN 2.5.0 (CON PASSWORD RESET)
+Funciones auxiliares: MFA, validaciones, renderizado, password reset
 
-CAMBIOS CRÍTICOS:
-1. ✅ Decorador @requiere_mfa corregido (no redirige a MFA cuando debe ir a login)
-2. ✅ renderizar_vista_protegida simplificado (no duplica lógica del decorador)
+CAMBIOS v2.5.0:
+1. ✅ Decorador @requiere_mfa (flujo correcto sin bucles)
+2. ✅ renderizar_vista_protegida simplificado
+3. ✅ 🆕 Envío de email para recuperación de contraseña
+4. ✅ 🆕 Correos unificados con mismo diseño
 """
 
 from flask import render_template, request, redirect, url_for, session, flash
@@ -64,204 +66,39 @@ def requiere_mfa(fn):
 
 
 # =====================
-# FUNCIONES DE CORREO
+# PLANTILLA HTML UNIFICADA
 # =====================
 
-def enviar_codigo_verificacion(destinatario, codigo, nombre_usuario="Usuario"):
+def _obtener_html_email_peaksport(primer_nombre, contenido_principal, tipo=""):
     """
-    Envía un código de verificación al correo del usuario con diseño profesional.
+    Genera HTML unificado para todos los correos de PeakSport.
     
     Args:
-        destinatario (str): Correo electrónico del usuario.
-        codigo (str): Código de verificación MFA (6 dígitos).
-        nombre_usuario (str): Nombre completo del usuario.
+        primer_nombre (str): Primer nombre del usuario
+        contenido_principal (str): HTML del contenido específico
+        tipo (str): "mfa" o "reset" (para logging)
+    
+    Retorna: HTML completo para el email
     """
-    
-    # Estilos CSS
-    estilos_css = """
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
-    
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-    
-    body {
-        font-family: 'Poppins', sans-serif;
-        background-color: #f7f7f7;
-    }
-    
-    .email-container {
-        max-width: 600px;
-        margin: 40px auto;
-        background-color: #ffffff;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        overflow: hidden;
-    }
-    
-    .gradient-header {
-        background: linear-gradient(135deg, #dc2626 0%, #7f1d1d 50%, #1a1a1a 100%);
-        padding: 40px 30px;
-        text-align: center;
-    }
-    
-    .header-text h1 {
-        font-size: 32px;
-        font-weight: 700;
-        color: white;
-    }
-    
-    .header-text p {
-        font-size: 12px;
-        color: #d1d5db;
-        margin-top: 4px;
-    }
-    
-    .security-badge {
-        background-color: rgba(255,255,255,0.1);
-        border-radius: 12px;
-        padding: 12px;
-        margin-top: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        color: white;
-    }
-    
-    .email-body {
-        padding: 32px;
-    }
-    
-    .greeting h2 {
-        font-size: 24px;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 8px;
-    }
-    
-    .greeting p {
-        font-size: 16px;
-        color: #4b5563;
-        line-height: 1.6;
-    }
-    
-    .security-icon {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 24px;
-    }
-    
-    .icon-circle {
-        width: 80px;
-        height: 80px;
-        background: #dc2626;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 12px rgba(220,38,38,0.3);
-    }
-    
-    .lock-icon {
-        font-size: 40px;
-        color: white;
-    }
-    
-    .instruction {
-        text-align: center;
-        font-size: 16px;
-        color: #1f2937;
-        margin-bottom: 16px;
-        font-weight: 600;
-    }
-    
-    .code-box {
-        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-        border: 3px dashed #dc2626;
-        border-radius: 12px;
-        padding: 30px;
-        margin: 30px 0;
-        text-align: center;
-    }
-    
-    .code-text {
-        font-size: 42px;
-        font-weight: 800;
-        color: #dc2626;
-        letter-spacing: 8px;
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    }
-    
-    .code-expiry {
-        color: #7f1d1d;
-        font-weight: 600;
-        margin-top: 12px;
-        font-size: 14px;
-    }
-    
-    .info-box {
-        background-color: #f9fafb;
-        border-left: 4px solid #dc2626;
-        border-radius: 0 8px 8px 0;
-        padding: 16px;
-        margin-bottom: 24px;
-    }
-    
-    .info-box p {
-        font-size: 14px;
-        color: #1f2937;
-        font-weight: 600;
-        margin-bottom: 8px;
-    }
-    
-    .info-box ul {
-        list-style: none;
-        font-size: 14px;
-        color: #4b5563;
-    }
-    
-    .info-box li {
-        margin-bottom: 4px;
-        line-height: 1.5;
-    }
-    
-    .divider {
-        border-top: 2px solid #e5e7eb;
-        margin: 24px 0;
-    }
-    
-    .email-footer {
-        text-align: center;
-    }
-    
-    .email-footer p {
-        font-size: 14px;
-        color: #6b7280;
-        margin-bottom: 4px;
-    }
-    
-    .footer-brand {
-        color: #1f2937;
-        font-weight: 600;
-    }
-    
-    .email-bottom {
-        background: linear-gradient(to right, #1f2937, #000000);
-        padding: 16px 32px;
-        text-align: center;
-    }
-    
-    .email-bottom p {
-        font-size: 12px;
-        color: #9ca3af;
-    }
-    """
-    
-    # HTML
-    primer_nombre = (nombre_usuario.split()[0] if nombre_usuario else "Usuario").capitalize()
+    # Determinar colores según tipo de email
+    if tipo == "reset":
+        bg_body = "#ffffff"
+        bg_container = "#ffffff"
+        border_color = "rgba(220, 38, 38, 0.15)"
+        text_primary = "#000000"
+        text_secondary = "#1f2937"
+        text_tertiary = "#374151"
+        instruction_color = "#1f2937"
+        footer_color = "#374151"
+    else:
+        bg_body = "#0f172a"
+        bg_container = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
+        border_color = "rgba(220, 38, 38, 0.2)"
+        text_primary = "#e5e7eb"
+        text_secondary = "#d1d5db"
+        text_tertiary = "#9ca3af"
+        instruction_color = "#e5e7eb"
+        footer_color = "#9ca3af"
     
     html_body = f"""
     <!DOCTYPE html>
@@ -269,8 +106,223 @@ def enviar_codigo_verificacion(destinatario, codigo, nombre_usuario="Usuario"):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Verificación de Acceso - PeakSport</title>
-        <style>{estilos_css}</style>
+        <title>Seguridad - PeakSport</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+            
+            * {{
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }}
+            
+            body {{
+                font-family: 'Poppins', sans-serif;
+                background-color: {bg_body};
+                margin: 0;
+                padding: 0;
+            }}
+            
+            .email-container {{
+                max-width: 600px;
+                margin: 20px auto;
+                background: {bg_container};
+                border-radius: 20px;
+                overflow: hidden;
+                border: 1px solid {border_color};
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            }}
+            
+            .gradient-header {{
+                background: linear-gradient(135deg, #dc2626 0%, #000000 100%);
+                padding: 40px 30px;
+                text-align: center;
+            }}
+            
+            .header-text h1 {{
+                font-size: 32px;
+                font-weight: 800;
+                color: white;
+                margin: 0;
+            }}
+            
+            .header-text p {{
+                font-size: 12px;
+                color: #e5e7eb;
+                margin-top: 8px;
+            }}
+            
+            .security-badge {{
+                background-color: rgba(255, 255, 255, 0.15);
+                border-radius: 12px;
+                padding: 12px;
+                margin-top: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                color: white;
+                font-size: 14px;
+                font-weight: 600;
+            }}
+            
+            .email-body {{
+                padding: 40px 30px;
+            }}
+            
+            .greeting h2 {{
+                font-size: 24px;
+                font-weight: 700;
+                color: {text_primary};
+                margin-bottom: 16px;
+            }}
+            
+            .greeting p {{
+                font-size: 16px;
+                color: {text_secondary};
+                line-height: 1.6;
+                margin-bottom: 24px;
+            }}
+            
+            .security-icon {{
+                display: flex;
+                justify-content: center;
+                margin-bottom: 24px;
+            }}
+            
+            .icon-circle {{
+                width: 80px;
+                height: 80px;
+                background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+                font-size: 40px;
+            }}
+            
+            .instruction {{
+                text-align: center;
+                font-size: 16px;
+                color: {instruction_color};
+                margin-bottom: 24px;
+                font-weight: 600;
+            }}
+            
+            .code-box {{
+                background: rgba(220, 38, 38, 0.1);
+                border: 2px solid rgba(220, 38, 38, 0.3);
+                border-radius: 12px;
+                padding: 30px;
+                margin: 30px 0;
+                text-align: center;
+            }}
+            
+            .code-text {{
+                font-size: 42px;
+                font-weight: 800;
+                color: #dc2626;
+                letter-spacing: 8px;
+                font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            }}
+            
+            .code-expiry {{
+                color: {text_tertiary};
+                font-weight: 600;
+                margin-top: 12px;
+                font-size: 14px;
+            }}
+            
+            .button-container {{
+                text-align: center;
+                margin: 30px 0;
+            }}
+            
+            .button {{
+                background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+                color: #ffffff !important;
+                padding: 14px 32px;
+                border-radius: 10px;
+                text-decoration: none;
+                font-weight: bold;
+                display: inline-block;
+                transition: transform 0.3s;
+                font-size: 16px;
+            }}
+            
+            .button:hover {{
+                transform: scale(1.05);
+            }}
+            
+            .link-copy {{
+                background: rgba(0, 0, 0, 0.1);
+                padding: 12px;
+                border-radius: 8px;
+                word-break: break-all;
+                color: #dc2626;
+                font-family: monospace;
+                font-size: 11px;
+                margin-top: 12px;
+                line-height: 1.4;
+                border: 1px solid rgba(220, 38, 38, 0.2);
+            }}
+            
+            .info-box {{
+                background: rgba(220, 38, 38, 0.08);
+                border-left: 4px solid #dc2626;
+                border-radius: 0 8px 8px 0;
+                padding: 16px;
+                margin: 24px 0;
+            }}
+            
+            .info-box p {{
+                font-size: 14px;
+                color: {text_primary};
+                font-weight: 600;
+                margin-bottom: 8px;
+            }}
+            
+            .info-box ul {{
+                list-style: none;
+                font-size: 14px;
+                color: {text_secondary};
+            }}
+            
+            .info-box li {{
+                margin-bottom: 6px;
+                line-height: 1.5;
+            }}
+            
+            .divider {{
+                border-top: 1px solid rgba(220, 38, 38, 0.2);
+                margin: 24px 0;
+            }}
+            
+            .email-footer {{
+                text-align: center;
+                color: {footer_color};
+                font-size: 14px;
+            }}
+            
+            .footer-brand {{
+                color: {text_primary};
+                font-weight: 600;
+            }}
+            
+            .email-bottom {{
+                background: linear-gradient(to right, #1a1f2e, #0f172a);
+                padding: 20px 30px;
+                text-align: center;
+                border-top: 1px solid rgba(220, 38, 38, 0.1);
+            }}
+            
+            .email-bottom p {{
+                font-size: 12px;
+                color: #6b7280;
+                margin: 0;
+            }}
+        </style>
     </head>
     <body>
         <div class="email-container">
@@ -286,32 +338,7 @@ def enviar_codigo_verificacion(destinatario, codigo, nombre_usuario="Usuario"):
             </div>
             
             <div class="email-body">
-                <div class="greeting">
-                    <h2>Hola {primer_nombre},</h2>
-                    <p>Recibimos una solicitud para acceder a tu cuenta de <strong>PeakSport</strong>.</p>
-                </div>
-                
-                <div class="security-icon">
-                    <div class="icon-circle">
-                        <span class="lock-icon">🔐</span>
-                    </div>
-                </div>
-                
-                <p class="instruction">Por seguridad, verifica tu identidad ingresando el siguiente código:</p>
-                
-                <div class="code-box">
-                    <div class="code-text">{codigo}</div>
-                    <p class="code-expiry">⏱️ Este código expirará en 5 minutos</p>
-                </div>
-                
-                <div class="info-box">
-                    <p>ℹ️ Información importante:</p>
-                    <ul>
-                        <li>• Nunca compartas este código con nadie</li>
-                        <li>• PeakSport nunca te pedirá este código por teléfono o email</li>
-                        <li>• Si no realizaste esta solicitud, cambia tu contraseña inmediatamente</li>
-                    </ul>
-                </div>
+                {contenido_principal}
                 
                 <div class="divider"></div>
                 
@@ -328,6 +355,55 @@ def enviar_codigo_verificacion(destinatario, codigo, nombre_usuario="Usuario"):
     </html>
     """
     
+    return html_body
+
+
+# =====================
+# FUNCIONES DE CORREO - MFA
+# =====================
+
+def enviar_codigo_verificacion(destinatario, codigo, nombre_usuario="Usuario"):
+    """
+    Envía un código de verificación al correo del usuario con diseño profesional.
+    
+    Args:
+        destinatario (str): Correo electrónico del usuario.
+        codigo (str): Código de verificación MFA (6 dígitos).
+        nombre_usuario (str): Nombre completo del usuario.
+    """
+    
+    primer_nombre = (nombre_usuario.split()[0] if nombre_usuario else "Usuario").capitalize()
+    
+    # Contenido específico para MFA
+    contenido_mfa = f"""
+    <div class="greeting">
+        <h2>Hola {primer_nombre},</h2>
+        <p>Recibimos una solicitud para acceder a tu cuenta de <strong>PeakSport</strong>.</p>
+    </div>
+    
+    <div class="security-icon">
+        <div class="icon-circle">🔐</div>
+    </div>
+    
+    <p class="instruction">Por seguridad, verifica tu identidad ingresando el siguiente código:</p>
+    
+    <div class="code-box">
+        <div class="code-text">{codigo}</div>
+        <p class="code-expiry">⏱️ Este código expirará en 5 minutos</p>
+    </div>
+    
+    <div class="info-box">
+        <p>ℹ️ Información importante:</p>
+        <ul>
+            <li>• Nunca compartas este código con nadie</li>
+            <li>• PeakSport nunca te pedirá este código por teléfono o email</li>
+            <li>• Si no realizaste esta solicitud, cambia tu contraseña inmediatamente</li>
+        </ul>
+    </div>
+    """
+    
+    html_body = _obtener_html_email_peaksport(primer_nombre, contenido_mfa, tipo="mfa")
+    
     try:
         asunto = "🔐 Verificación de acceso - PeakSport"
         
@@ -337,11 +413,79 @@ def enviar_codigo_verificacion(destinatario, codigo, nombre_usuario="Usuario"):
             html=html_body
         )
         mail.send(mensaje)
-        log_success(f"✅ Código enviado a {destinatario} ({primer_nombre})")
+        log_success(f"✅ Código MFA enviado a {destinatario} ({primer_nombre})")
         
     except Exception as e:
-        log_error(f"❌ Error enviando correo a {destinatario}: {str(e)}")
-        raise  # Re-lanzar para que MFA pueda manejarlo
+        log_error(f"❌ Error enviando código MFA a {destinatario}: {str(e)}")
+        raise
+
+
+# =====================
+# FUNCIONES DE CORREO - PASSWORD RESET
+# =====================
+
+def enviar_email_recuperacion_contraseña(destinatario, nombre_usuario, enlace_reset):
+    """
+    Envía email de recuperación de contraseña
+    
+    Args:
+        destinatario (str): Email del usuario
+        nombre_usuario (str): Nombre completo del usuario
+        enlace_reset (str): Enlace para resetear contraseña (URL completa)
+    
+    Retorna: True si se envió correctamente, False si hay error
+    """
+    try:
+        primer_nombre = (nombre_usuario.split()[0] if nombre_usuario else "Usuario").capitalize()
+        
+        # Contenido específico para Password Reset
+        contenido_reset = f"""
+        <div class="greeting">
+            <h2>Recupera tu contraseña</h2>
+            <p>Recibimos una solicitud para restablecer tu contraseña en <strong>PeakSport</strong>.</p>
+        </div>
+        
+        <div class="security-icon">
+            <div class="icon-circle">🔑</div>
+        </div>
+        
+        <p class="instruction">Haz clic en el botón de abajo para crear una nueva contraseña:</p>
+        
+        <div class="button-container">
+            <a href="{enlace_reset}" class="button">Restablecer contraseña</a>
+        </div>
+        
+        <p style="text-align: center; color: #888888; font-size: 12px; margin-top: 16px;">
+            O copia este enlace:<br>
+            <span class="link-copy">{enlace_reset}</span>
+        </p>
+        
+        <div class="info-box">
+            <p>⏱️ Importante:</p>
+            <ul>
+                <li>• Este enlace expira en <strong>1 hora</strong></li>
+                <li>• Si no solicitaste cambiar tu contraseña, ignora este correo</li>
+                <li>• Tu contraseña no será modificada hasta que confirmes en el enlace</li>
+            </ul>
+        </div>
+        """
+        
+        html_body = _obtener_html_email_peaksport(primer_nombre, contenido_reset, tipo="reset")
+        
+        asunto = "🔐 Recupera tu contraseña en PeakSport"
+        
+        mensaje = Message(
+            subject=asunto,
+            recipients=[destinatario],
+            html=html_body
+        )
+        mail.send(mensaje)
+        log_success(f"✅ Email de recuperación enviado a {destinatario}")
+        return True
+        
+    except Exception as e:
+        log_error(f"❌ Error enviando email de recuperación a {destinatario}: {str(e)}")
+        return False
 
 
 # =====================
