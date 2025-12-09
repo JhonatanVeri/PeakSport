@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-utils.py - VERSIÓN 2.5.0 (CON PASSWORD RESET)
+utils.py - VERSIÓN 2.6.0 (MFA FIX FINAL)
 Funciones auxiliares: MFA, validaciones, renderizado, password reset
 
-CAMBIOS v2.5.0:
-1. ✅ Decorador @requiere_mfa (flujo correcto sin bucles)
-2. ✅ renderizar_vista_protegida simplificado
-3. ✅ 🆕 Envío de email para recuperación de contraseña
-4. ✅ 🆕 Correos unificados con mismo diseño
+CAMBIOS v2.6.0:
+1. ✅ Decorador @requiere_mfa sin duplicación
+2. ✅ Prevención de loops infinitos
+3. ✅ Logging mejorado para debug
+4. ✅ Envío de emails (MFA y password reset)
 """
 
 from flask import render_template, request, redirect, url_for, session, flash
@@ -21,52 +21,77 @@ from Log_PeakSport import log_info, log_error, log_warning, log_debug, log_succe
 
 
 # =====================
-# DECORADOR DE MFA - CORREGIDO
+# DECORADOR DE MFA - VERSIÓN FINAL
 # =====================
 def requiere_mfa(fn):
     """
     Decorador que verifica MFA antes de permitir acceso.
-    Debe usarse en TODAS las rutas protegidas.
     
     FLUJO CORRECTO:
     1. Si NO está logged_in → redirige a /login
     2. Si está logged_in pero NO mfa_verificado → redirige a /mfa/verificar-codigo
     3. Si ambos están OK → permite acceso
+    
+    CARACTERÍSTICAS:
+    - Validación estricta de sesión
+    - Prevención de loops infinitos
+    - Logging detallado para debugging
     """
     @wraps(fn)
     def wrapper(*args, **kwargs):
+        # ✅ OBTENER DATOS DE SESIÓN
+        logged_in = session.get("logged_in", False)
+        mfa_verificado = session.get("mfa_verificado", False)
+        usuario_correo = session.get("usuario_correo")
+        usuario_id = session.get("usuario_id")
+        ruta_actual = request.path
+        
+        log_debug(f"[MFA-DECORATOR] Ejecutado en: {ruta_actual}")
+        log_debug(f"[MFA-DECORATOR] Estado sesión: logged_in={logged_in}, mfa={mfa_verificado}, user={usuario_correo}, id={usuario_id}")
+        
         # ✅ PASO 1: Verificar si está logueado
-        if not session.get("logged_in"):
-            log_warning(f"[MFA] Acceso rechazado: No logged_in. Redirigiendo a LOGIN")
-            # Guardar destino para después
+        if not logged_in or not usuario_correo or not usuario_id:
+            log_warning(f"[MFA-DECORATOR] ❌ Sesión inválida en {ruta_actual}")
+            
+            # Guardar destino para después del login
             session["destino_post_login"] = {
-                "ruta": request.path,
+                "ruta": ruta_actual,
                 "params": request.args.to_dict()
             }
             session.modified = True
-            # ✅ CRÍTICO: Redirigir a LOGIN, NO a MFA
+            
+            flash("⚠️ Debes iniciar sesión para acceder a esta página", "alert")
             return redirect(url_for("login.vista_pantalla_login"))
         
         # ✅ PASO 2: Verificar MFA
-        if not session.get("mfa_verificado"):
-            log_warning(f"[MFA] MFA no verificado para {session.get('usuario_correo')}. Redirigiendo a MFA")
+        if not mfa_verificado:
+            log_warning(f"[MFA-DECORATOR] ⚠️ MFA no verificado para {usuario_correo}")
+            
+            # ✅ PREVENCIÓN DE LOOP: Si ya estamos en ruta MFA, permitir acceso
+            if ruta_actual.startswith("/mfa/"):
+                log_debug(f"[MFA-DECORATOR] Ya en ruta MFA, permitiendo acceso")
+                return fn(*args, **kwargs)
+            
             # Guardar destino para después del MFA
             session["destino_post_mfa"] = {
-                "ruta": request.path,
+                "ruta": ruta_actual,
                 "params": request.args.to_dict()
             }
             session.modified = True
+            
+            log_info(f"[MFA-DECORATOR] Redirigiendo a MFA desde {ruta_actual}")
+            flash("🔐 Por favor verifica tu identidad con el código enviado a tu correo", "info")
             return redirect(url_for("mfa.verificar_codigo"))
         
-        # ✅ PASO 3: Ambas validaciones pasaron
-        log_debug(f"[MFA] ✅ Acceso permitido a {request.path} para {session.get('usuario_correo')}")
+        # ✅ PASO 3: Ambas validaciones pasaron - ACCESO PERMITIDO
+        log_debug(f"[MFA-DECORATOR] ✅ Acceso PERMITIDO a {ruta_actual} para {usuario_correo}")
         return fn(*args, **kwargs)
     
     return wrapper
 
 
 # =====================
-# PLANTILLA HTML UNIFICADA
+# PLANTILLA HTML UNIFICADA PARA EMAILS
 # =====================
 
 def _obtener_html_email_peaksport(primer_nombre, contenido_principal, tipo=""):
@@ -76,7 +101,7 @@ def _obtener_html_email_peaksport(primer_nombre, contenido_principal, tipo=""):
     Args:
         primer_nombre (str): Primer nombre del usuario
         contenido_principal (str): HTML del contenido específico
-        tipo (str): "mfa" o "reset" (para logging)
+        tipo (str): "mfa" o "reset" (para logging y estilos)
     
     Retorna: HTML completo para el email
     """
@@ -90,7 +115,7 @@ def _obtener_html_email_peaksport(primer_nombre, contenido_principal, tipo=""):
         text_tertiary = "#374151"
         instruction_color = "#1f2937"
         footer_color = "#374151"
-    else:
+    else:  # MFA y otros
         bg_body = "#0f172a"
         bg_container = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
         border_color = "rgba(220, 38, 38, 0.2)"
@@ -364,14 +389,13 @@ def _obtener_html_email_peaksport(primer_nombre, contenido_principal, tipo=""):
 
 def enviar_codigo_verificacion(destinatario, codigo, nombre_usuario="Usuario"):
     """
-    Envía un código de verificación al correo del usuario con diseño profesional.
+    Envía un código de verificación MFA al correo del usuario.
     
     Args:
-        destinatario (str): Correo electrónico del usuario.
-        codigo (str): Código de verificación MFA (6 dígitos).
-        nombre_usuario (str): Nombre completo del usuario.
+        destinatario (str): Correo electrónico del usuario
+        codigo (str): Código de verificación MFA (6 dígitos)
+        nombre_usuario (str): Nombre completo del usuario
     """
-    
     primer_nombre = (nombre_usuario.split()[0] if nombre_usuario else "Usuario").capitalize()
     
     # Contenido específico para MFA
@@ -426,7 +450,7 @@ def enviar_codigo_verificacion(destinatario, codigo, nombre_usuario="Usuario"):
 
 def enviar_email_recuperacion_contraseña(destinatario, nombre_usuario, enlace_reset):
     """
-    Envía email de recuperación de contraseña
+    Envía email de recuperación de contraseña.
     
     Args:
         destinatario (str): Email del usuario
@@ -489,7 +513,7 @@ def enviar_email_recuperacion_contraseña(destinatario, nombre_usuario, enlace_r
 
 
 # =====================
-# RENDERIZADOR DE VISTAS - SIMPLIFICADO
+# RENDERIZADOR DE VISTAS
 # =====================
 
 def renderizar_vista_protegida(
@@ -499,7 +523,7 @@ def renderizar_vista_protegida(
     **context
 ):
     """
-    Renderiza vista protegida.
+    Renderiza vista protegida agregando datos de sesión al contexto.
     
     IMPORTANTE: Esta función NO debe duplicar la lógica de @requiere_mfa
     Solo agrega datos de sesión al contexto del template.
@@ -508,7 +532,7 @@ def renderizar_vista_protegida(
         template (str): Nombre del template
         correos_permitidos (list): Email whitelist (opcional)
         mantenimiento (bool): Muestra página de mantenimiento
-        **context: Variables para el template
+        **context: Variables adicionales para el template
     """
     nombre_usuario = session.get("usuario_nombre", "Usuario")
     correo_usuario = session.get("usuario_correo", "")

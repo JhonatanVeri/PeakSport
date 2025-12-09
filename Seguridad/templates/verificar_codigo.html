@@ -248,15 +248,15 @@
   <div class="login-background">
     <header class="relative z-20 bg-stone-100 bg-opacity-95 backdrop-blur-sm border-b border-stone-200 py-4">
       <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
-        <a href="#" class="flex items-center">
+        <a href="/" class="flex items-center">
           <div class="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center mr-3">
             <span class="text-white font-bold text-lg">PS</span>
           </div>
           <span class="text-2xl font-bold text-black tracking-wider uppercase">PEAKSPORT</span>
         </a>
-        <button class="text-gray-700 hover:text-red-600 transition-colors uppercase font-semibold tracking-wide text-sm">
+        <a href="/" class="text-gray-700 hover:text-red-600 transition-colors uppercase font-semibold tracking-wide text-sm">
           ← VOLVER A INICIO
-        </button>
+        </a>
       </div>
     </header>
 
@@ -318,14 +318,15 @@
           </div>
           <div>
             <p class="text-xs text-red-700 font-semibold">Iniciando sesión como:</p>
-            <p class="text-sm text-red-900 font-bold" id="usuarioCorreo">usuario@peaksport.com</p>
+            <p class="text-sm text-red-900 font-bold" id="usuarioCorreo">{{ session.get('usuario_correo', 'usuario@peaksport.com') }}</p>
           </div>
         </div>
       </div>
 
       <div id="mensajesFlash"></div>
 
-      <form method="POST" action="#" id="mfaForm">
+      <!-- ✅ FORM CORREGIDO: action apunta a la ruta correcta -->
+      <form method="POST" action="{{ url_for('mfa.verificar_codigo') }}" id="mfaForm">
         
         <div class="mb-6">
           <div class="flex justify-center gap-2 mb-4" id="codeInputs">
@@ -576,27 +577,8 @@
 
       mostrarMensaje('📧 Reenviando código...', 'info');
       
-      clearInterval(timerInterval);
-      tiempoRestante = TIEMPO_TOTAL;
-      codigoExpirado = false;
-      inicializarTimer();
-      
-      limpiarInputsCódigo();
-      
-      inputs.forEach(input => {
-        input.disabled = false;
-      });
-      
-      const btnSubmit = document.querySelector('button[type="submit"]');
-      btnSubmit.disabled = false;
-      btnSubmit.style.opacity = '1';
-      btnSubmit.innerHTML = 'Verificar';
-      
-      resendBtn.classList.remove('resend-enabled');
-      resendBtn.classList.add('resend-disabled');
-      resendBtn.disabled = true;
-      
-      log('✅ Código reenviado');
+      // Recargar la página para obtener un nuevo código
+      window.location.reload();
     });
 
     function limpiarInputsCódigo() {
@@ -607,22 +589,30 @@
       inputs[0].focus();
     }
 
+    // ✅ FUNCIÓN CORREGIDA CON DEBUG: Ahora SÍ envía el formulario
     function inicializarFormulario() {
       form.addEventListener('submit', (e) => {
+        console.log('🔵 [DEBUG] Submit event triggered');
         e.preventDefault();
         actualizarCodigoOculto();
+        
+        console.log('🔵 [DEBUG] Código actualizado:', codigoCompleto.value);
+        console.log('🔵 [DEBUG] Código expirado:', codigoExpirado);
 
         if (codigoExpirado) {
+          console.log('🔴 [DEBUG] Código expirado, bloqueando envío');
           mostrarMensaje('❌ El código ha expirado. Solicita uno nuevo.', 'error');
           return;
         }
 
         if (codigoCompleto.value.length !== 6) {
+          console.log('🔴 [DEBUG] Código incompleto:', codigoCompleto.value.length);
           mostrarMensaje('❌ Por favor ingresa el código completo de 6 dígitos', 'error');
           return;
         }
 
         if (!/^\d{6}$/.test(codigoCompleto.value)) {
+          console.log('🔴 [DEBUG] Código no numérico');
           mostrarMensaje('❌ El código debe contener solo números', 'error');
           return;
         }
@@ -632,6 +622,18 @@
         const btnSubmit = document.querySelector('button[type="submit"]');
         btnSubmit.disabled = true;
         btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+        
+        console.log('🟢 [DEBUG] Todas las validaciones OK, enviando formulario...');
+        console.log('🟢 [DEBUG] Form action:', form.action);
+        console.log('🟢 [DEBUG] Form method:', form.method);
+        
+        // ✅ ENVIAR FORMULARIO
+        try {
+          form.submit();
+          console.log('✅ [DEBUG] form.submit() ejecutado exitosamente');
+        } catch (error) {
+          console.error('❌ [DEBUG] Error al enviar formulario:', error);
+        }
       });
     }
 
