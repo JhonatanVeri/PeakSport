@@ -13,7 +13,7 @@ bp_administrador_principal = Blueprint(
     __name__,
     template_folder="templates",      # Carpeta de templates: Administrador/principal/templates/
     static_folder="static",           # Carpeta de statics: Administrador/principal/static/
-    static_url_path="/administrador/principal/static",  # URL para los statics
+    static_url_path="/static",        # URL para los statics (Flask antepone url_prefix)
     url_prefix="/administrador/principal"   # Prefijo de URL para todas las rutas
 )
 

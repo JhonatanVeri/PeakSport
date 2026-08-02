@@ -51,7 +51,9 @@ else:
 # Secret key
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-key-change-in-production")
 
-DEBUG = FLASK_ENV == 'development'
+# DEBUG solo si es entorno de desarrollo Y no estamos en Render (defensa en profundidad
+# por si FLASK_ENV queda mal configurado en el despliegue).
+DEBUG = FLASK_ENV == 'development' and not ON_RENDER
 
 # ===============================
 # Correo

@@ -353,14 +353,14 @@ function renderReviewsList(resenas, replace = true) {
   const reviewsHTML = resenas.map(resena => `
     <div class="glass-card rounded-xl p-6 fade-in" data-review-id="${resena.id}">
       <div class="flex items-start space-x-4">
-        <img src="https://i.pravatar.cc/50?seed=${resena.usuario_id}" 
-             alt="${resena.usuario_nombre}" 
+        <img src="https://i.pravatar.cc/50?seed=${resena.usuario_id}"
+             alt="${escapeHTML(resena.usuario_nombre)}"
              class="w-12 h-12 rounded-full border-2 border-red-500">
         <div class="flex-1">
           <div class="flex items-center justify-between mb-2">
             <div>
               <h5 class="font-semibold text-white">
-                ${resena.usuario_nombre}
+                ${escapeHTML(resena.usuario_nombre)}
                 ${resena.compra_verificada ? '<i class="fas fa-check-circle text-green-400 ml-2" title="Compra verificada"></i>' : ''}
               </h5>
               <div class="flex star-rating text-sm">

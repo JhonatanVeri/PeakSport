@@ -16,7 +16,7 @@ bp_catalogo = Blueprint(
     url_prefix='/catalogo',
     template_folder='templates',
     static_folder='static',
-    static_url_path='/catalogo/static'
+    static_url_path='/static'
 )
 
 # Instanciar controlador

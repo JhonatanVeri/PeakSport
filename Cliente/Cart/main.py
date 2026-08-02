@@ -24,7 +24,7 @@ bp_cart = Blueprint(
     __name__,
     template_folder=os.path.join(os.path.dirname(__file__), 'templates'),
     static_folder=os.path.join(os.path.dirname(__file__), 'static'),
-    static_url_path='/cart/static'
+    static_url_path='/static'
 )
 
 
@@ -294,7 +294,19 @@ def api_actualizar_cantidad(item_id):
                 'success': False,
                 'error': 'La cantidad debe ser mayor a 0'
             }), 400
-        
+
+        # ✅ Verificar que el item pertenece al carrito del usuario/sesión actual
+        from Modelo_de_Datos_PostgreSQL_y_CRUD.conexion_postgres import db
+        from Modelo_de_Datos_PostgreSQL_y_CRUD.Cart import CartItem
+        cart_actual = get_or_create_cart_for_current_user()
+        item_existente = db.session.get(CartItem, item_id)
+        if not cart_actual or not item_existente or item_existente.cart_id != cart_actual.id:
+            log_warning(f"[cart_api] intento de actualizar item ajeno o inexistente: {item_id}")
+            return jsonify({
+                'success': False,
+                'error': 'Item no encontrado'
+            }), 404
+
         # Actualizar cantidad
         item = actualizar_cantidad_item(item_id, cantidad)
         
@@ -335,14 +347,16 @@ def api_eliminar_producto(item_id):
         from Modelo_de_Datos_PostgreSQL_y_CRUD.Cart import CartItem
         
         item = db.session.get(CartItem, item_id)
-        if not item:
+        cart_actual = get_or_create_cart_for_current_user()
+        if not item or not cart_actual or item.cart_id != cart_actual.id:
+            log_warning(f"[cart_api] intento de eliminar item ajeno o inexistente: {item_id}")
             return jsonify({
                 'success': False,
                 'error': 'Item no encontrado'
             }), 404
-        
+
         cart_id = item.cart_id
-        
+
         # Eliminar item
         success = eliminar_item_carrito(item_id)
         
@@ -453,7 +467,7 @@ def inject_cart_data():
             return {
                 'cart_items_count': totales.get('total_items', 0)
             }
-    except:
-        pass
+    except Exception as e:
+        log_error(f"[cart] inject_cart_data error: {e}")
     
     return {'cart_items_count': 0}

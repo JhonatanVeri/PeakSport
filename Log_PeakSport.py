@@ -30,6 +30,7 @@ Versión: 2.0.1
 """
 
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 import inspect
 from datetime import datetime
@@ -92,8 +93,8 @@ def _configurar_logger(nivel_nombre='GENERAL'):
     if not logger.hasHandlers():
         formatter = logging.Formatter(LOG_FORMAT)
 
-        # Handler archivo
-        file_handler = logging.FileHandler(ruta_log, encoding='utf-8')
+        # Handler archivo (con rotación: 5MB x 5 backups)
+        file_handler = RotatingFileHandler(ruta_log, maxBytes=5_000_000, backupCount=5, encoding='utf-8')
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 

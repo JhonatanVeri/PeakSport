@@ -10,7 +10,7 @@ CORREGIDO: check_password ahora valida correctamente hashes
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import CheckConstraint, func, Index
+from sqlalchemy import CheckConstraint, func
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -42,7 +42,8 @@ class Usuario(db.Model):
 
     __table_args__ = (
         CheckConstraint("rol IN ('Administrador','Cliente')", name="chk_usuarios_rol"),
-        Index('idx_usuarios_correo', 'correo'),
+        # Nota: no se agrega índice extra sobre 'correo' aquí porque la columna
+        # ya lo declara vía unique=True, index=True (evita índice duplicado).
     )
 
     # Helpers

@@ -202,8 +202,8 @@ def reset_password():
         token = data.get('token', '').strip()
         nueva_contrasena = data.get('nueva_contrasena', '').strip()
         
-        log_info(f"📩 Token recibido (primeros 30 chars): {token[:30]}...")
-        log_info(f"🔐 Nueva contraseña recibida: {'*' * len(nueva_contrasena)} (longitud: {len(nueva_contrasena)})")
+        log_info("📩 Token de reset recibido")
+        log_info(f"🔐 Nueva contraseña recibida (longitud: {len(nueva_contrasena)})")
 
         # Validaciones
         if not token or not nueva_contrasena:
@@ -246,7 +246,7 @@ def reset_password():
 
         # Hashear token
         token_hash = PasswordResetToken.hash_token(token)
-        log_info(f"🔑 Token hasheado (primeros 20 chars): {token_hash[:20]}...")
+        log_info("🔑 Token hasheado para validación")
 
         # Validar token
         log_info("🔍 Validando token en BD...")
@@ -274,13 +274,12 @@ def reset_password():
             }), 400
 
         log_info(f"✅ Usuario encontrado: {usuario.correo}")
-        log_info(f"📊 Hash actual en BD (primeros 20 chars): {usuario.contrasena[:20]}...")
 
         # ✅ Actualizar contraseña directamente con hash
         try:
             # Hashear la nueva contraseña
             nuevo_hash = generate_password_hash(nueva_contrasena)
-            log_info(f"🔒 Nuevo hash generado (primeros 20 chars): {nuevo_hash[:20]}...")
+            log_info("🔒 Nuevo hash de contraseña generado")
             
             # Actualizar en el modelo
             usuario.contrasena = nuevo_hash
@@ -295,7 +294,6 @@ def reset_password():
             
             # Verificar que se guardó correctamente
             db.session.refresh(usuario)
-            log_info(f"🔍 Hash verificado en BD (primeros 20 chars): {usuario.contrasena[:20]}...")
             
             # Verificar que el hash funciona
             if check_password_hash(usuario.contrasena, nueva_contrasena):

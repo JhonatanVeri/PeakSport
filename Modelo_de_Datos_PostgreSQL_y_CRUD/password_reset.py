@@ -9,7 +9,7 @@ VERSIÓN: 3.0 - CORREGIDO - Optimizado para transacciones
 from datetime import datetime, timedelta
 import secrets
 import hashlib
-from sqlalchemy import func, Index
+from sqlalchemy import func
 from sqlalchemy.exc import SQLAlchemyError
 
 from Modelo_de_Datos_PostgreSQL_y_CRUD.conexion_postgres import db
@@ -37,11 +37,9 @@ class PasswordResetToken(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, server_default=func.current_timestamp())
     ip_address = db.Column(db.String(45), nullable=True)
 
-    __table_args__ = (
-        Index('idx_password_reset_tokens_usuario_id', 'usuario_id'),
-        Index('idx_password_reset_tokens_token_hash', 'token_hash'),
-        Index('idx_password_reset_tokens_expires_at', 'expires_at'),
-    )
+    # Nota: no hay __table_args__ con índices extra aquí porque usuario_id,
+    # token_hash y expires_at ya declaran index=True en su propia columna
+    # (evita índices duplicados sobre las mismas columnas).
 
     def is_expired(self) -> bool:
         """Verifica si el token expiró"""
@@ -102,8 +100,7 @@ def crear_token_reset(usuario_id: int, ip_address: str = None) -> tuple:
         token_hashed = PasswordResetToken.hash_token(token_plain)
         expires_at = datetime.utcnow() + timedelta(hours=1)
         
-        log_info(f"🔐 Token generado (primeros 30 chars): {token_plain[:30]}...")
-        log_info(f"🔒 Token hasheado (primeros 20 chars): {token_hashed[:20]}...")
+        log_info(f"🔐 Token de reset generado para usuario {usuario_id}")
         log_info(f"⏰ Expira en: {expires_at}")
 
         # Crear registro
@@ -139,7 +136,7 @@ def obtener_token_reset(token_hash: str) -> tuple:
     Retorna: (token_record, valido: bool)
     """
     try:
-        log_info(f"🔍 Buscando token en BD (hash primeros 20 chars): {token_hash[:20]}...")
+        log_info("🔍 Buscando token de reset en BD")
         
         token = PasswordResetToken.query.filter_by(
             token_hash=token_hash,
@@ -184,7 +181,7 @@ def usar_token_reset(token_hash: str) -> bool:
     """
     try:
         log_warning("⚠️ usar_token_reset() llamado - considerar usar transacción única")
-        log_info(f"🔒 Marcando token como usado (hash primeros 20 chars): {token_hash[:20]}...")
+        log_info("🔒 Marcando token de reset como usado")
         
         token = PasswordResetToken.query.filter_by(token_hash=token_hash).first()
         if not token:

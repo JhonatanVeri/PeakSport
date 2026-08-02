@@ -13,6 +13,7 @@ if sys.platform == 'win32':
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 import os
+import re
 from datetime import timedelta
 from dotenv import load_dotenv
 from flask import Flask, render_template, session, jsonify
@@ -80,7 +81,7 @@ app.config['SESSION_KEY_PREFIX'] = 'peaksport:'
 # Cookie settings - CRÍTICO PARA MFA
 app.config['SESSION_COOKIE_NAME'] = 'peaksport_session'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SECURE'] = False  # True en producción con HTTPS
+app.config['SESSION_COOKIE_SECURE'] = FLASK_ENV == 'production'  # HTTPS-only en producción
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 # Debug mode
@@ -125,7 +126,9 @@ print("="*70)
 print(f"📍 Entorno: {FLASK_ENV}")
 print(f"📍 Debug: {DEBUG}")
 print(f"📍 Sesión: filesystem (30 min)")
-print(f"📍 Base de datos: {SQLALCHEMY_CONFIG.get('SQLALCHEMY_DATABASE_URI', '')[:50]}...")
+_db_uri = SQLALCHEMY_CONFIG.get('SQLALCHEMY_DATABASE_URI', '')
+_db_uri_oculta = re.sub(r'://([^:]+):[^@]+@', r'://\1:***@', _db_uri)
+print(f"📍 Base de datos: {_db_uri_oculta[:60]}...")
 print("="*70 + "\n")
 
 log_success("✅ Base de datos configurada correctamente")
@@ -238,23 +241,26 @@ def health_check():
 
 @app.route('/test-db')
 def test_db_route():
-    """Ruta para probar conexión a BD"""
+    """Ruta de diagnóstico de conexión a BD - solo disponible fuera de producción"""
+    if FLASK_ENV == 'production':
+        return jsonify({'status': 'not_found'}), 404
+
     try:
         with app.app_context():
             result = db.session.execute(db.text("SELECT version()"))
             version = result.fetchone()[0]
-        
+
         return jsonify({
             'status': 'success',
             'message': 'Conexión exitosa',
             'version': version.split(',')[0]
         }), 200
-            
+
     except Exception as e:
         log_error(f"[test_db_route] error: {e}")
         return jsonify({
             'status': 'error',
-            'message': str(e)
+            'message': 'Error de conexión a la base de datos'
         }), 500
 
 

@@ -87,7 +87,6 @@ def verificar_codigo():
         vencimiento = session.get("mfa_expira")
         
         log_info(f"[MFA] 🔐 POST - Validando código para {usuario_correo}")
-        log_info(f"[MFA] Código ingresado={codigo_ingresado}, esperado={codigo_esperado}")
         
         # Rate limiting
         ok_rate, msg_rate = _verificar_rate_limit(str(usuario_id))
@@ -181,7 +180,7 @@ def verificar_codigo():
     session["mfa_expira"] = vencimiento
     session.modified = True
     
-    log_info(f"[MFA] Código generado: {codigo}, vence: {vencimiento}")
+    log_info(f"[MFA] Código generado para {usuario_correo}, vence: {vencimiento}")
     
     try:
         # Enviar correo

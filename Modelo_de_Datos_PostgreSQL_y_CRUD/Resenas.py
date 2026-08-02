@@ -59,7 +59,7 @@ class Resena(db.Model):
     estado = db.Column(db.String(20), default='pendiente', server_default='pendiente')
     motivo_moderacion = db.Column(db.Text)
     num_reportes = db.Column(db.Integer, default=0, server_default='0')
-    moderado_por = db.Column(db.BigInteger, db.ForeignKey('usuarios.id', ondelete='SET NULL'))
+    moderado_por = db.Column(db.BigInteger, db.ForeignKey('usuarios.id', ondelete='SET NULL'), index=True)
     moderado_at = db.Column(db.DateTime)
     # ===================================================
     

@@ -9,6 +9,7 @@ CAMBIO CRÍTICO: Remover session.regenerate() - NO soportado en filesystem
 from flask import render_template, request, jsonify, session, redirect, url_for
 from werkzeug.security import generate_password_hash
 from functools import wraps
+from collections import defaultdict
 import re
 from datetime import datetime
 
@@ -26,7 +27,37 @@ MIN_PASSWORD_LENGTH = 8
 ALLOWED_ROLES = {'Administrador', 'Cliente'}
 VALID_EMAIL_REGEX = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 MAX_LOGIN_ATTEMPTS = 5
+LOGIN_ATTEMPTS_TIMEOUT = 300  # 5 minutos
 SESSION_TIMEOUT = 1800  # 30 minutos
+
+# Rate limiting de login en memoria (por correo). Mismo patrón que Seguridad/mfa.py
+_INTENTOS_LOGIN = defaultdict(lambda: {"count": 0, "timestamp": None})
+
+
+def _verificar_rate_limit_login(correo: str) -> tuple[bool, str]:
+    """Verifica si el correo ha excedido el límite de intentos de login fallidos"""
+    ahora = datetime.now()
+    data = _INTENTOS_LOGIN[correo]
+
+    if data["timestamp"] and (ahora - data["timestamp"]).total_seconds() > LOGIN_ATTEMPTS_TIMEOUT:
+        data["count"] = 0
+        data["timestamp"] = None
+
+    if data["count"] >= MAX_LOGIN_ATTEMPTS:
+        tiempo_restante = int(LOGIN_ATTEMPTS_TIMEOUT - (ahora - data["timestamp"]).total_seconds())
+        return False, f"Demasiados intentos fallidos. Intenta en {max(tiempo_restante, 1)}s"
+
+    return True, ""
+
+
+def _registrar_intento_login_fallido(correo: str) -> None:
+    data = _INTENTOS_LOGIN[correo]
+    data["count"] += 1
+    data["timestamp"] = datetime.now()
+
+
+def _limpiar_intentos_login(correo: str) -> None:
+    _INTENTOS_LOGIN.pop(correo, None)
 
 
 # =========================
@@ -153,11 +184,21 @@ def registrar_rutas(bp):
                 log_warning(f"[login] Email inválido: {correo}")
                 return jsonify({'ok': False, 'error': 'Formato de email inválido'}), 400
 
+            # ✅ Rate limiting contra fuerza bruta
+            permitido, mensaje_rate = _verificar_rate_limit_login(correo)
+            if not permitido:
+                log_warning(f"[login] Rate limit excedido para {correo}")
+                return jsonify({'ok': False, 'error': mensaje_rate}), 429
+
             # Verificar credenciales
             usuario = verificar_credenciales(correo, contrasena)
             if not usuario:
+                _registrar_intento_login_fallido(correo)
                 log_warning(f"[login] Credenciales inválidas para {correo}")
                 return jsonify({'ok': False, 'error': 'Credenciales inválidas'}), 401
+
+            # ✅ Login exitoso: limpiar contador de intentos fallidos
+            _limpiar_intentos_login(correo)
 
             # ✅ LIMPIAR SESIÓN COMPLETAMENTE
             session.clear()
