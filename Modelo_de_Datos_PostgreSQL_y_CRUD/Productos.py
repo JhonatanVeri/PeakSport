@@ -164,41 +164,6 @@ def listar_productos(
         return [], 0
 
 
-def listar_productos2(
-    filtros: Optional[Dict[str, Any]] = None,
-    page: int = 1,
-    per_page: int = 20,
-) -> Tuple[List[Producto], int]:
-    """
-    Retorna (items, total)
-    filtros soportados: {'activo': bool, 'usuario_id': int, 'categoria_id': int, 'q': str}
-    """
-
-    try:
-        query = Producto.query
-        filtros = filtros or {}
-
-        if 'activo' in filtros:
-            query = query.filter(Producto.activo == filtros['activo'])
-        if 'usuario_id' in filtros:
-            query = query.filter(Producto.usuario_id == filtros['usuario_id'])
-        if 'q' in filtros and filtros['q']:
-            q = f"%{filtros['q']}%"
-            query = query.filter(Producto.nombre.ilike(q))
-        if 'categoria_id' in filtros:
-            query = query.join(Producto.categorias).filter(Categoria.id == filtros['categoria_id'])
-
-        total = query.count()
-        items = query.order_by(Producto.created_at.desc()) \
-                     .offset((page - 1) * per_page).limit(per_page).all()
-
-        log_info(f"listar_productos: page={page}, per_page={per_page}, total={total}")
-        return items, total
-    except SQLAlchemyError as e:
-        log_error(f"Error en listar_productos: {str(e)}")
-        return [], 0
-
-
 def actualizar_producto(producto_id: int, **kwargs) -> Optional[Producto]:
     """
     Campos permitidos: nombre, slug, descripcion, precio_centavos, moneda, stock, sku, activo, usuario_id

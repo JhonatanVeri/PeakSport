@@ -1,11 +1,19 @@
 """
 Script para migrar el schema de PeakSport a Render
 """
+import os
+import sys
 import psycopg2
 from psycopg2 import sql
+from dotenv import load_dotenv
 
-# URL de tu base de datos en Render (completa con el hostname)
-RENDER_DATABASE_URL = "postgresql://peaksport_user:***REMOVED-DB-PASSWORD***@dpg-d44ad83ipnbc73d0dde0-a.oregon-postgres.render.com/peaksport_t81b"
+load_dotenv()
+
+# URL de la base de datos en Render, tomada de variables de entorno
+RENDER_DATABASE_URL = os.getenv("RENDER_DATABASE_URL") or os.getenv("POSTGRES_URI")
+if not RENDER_DATABASE_URL:
+    print("❌ Falta RENDER_DATABASE_URL (o POSTGRES_URI) en el entorno/.env")
+    sys.exit(1)
 
 # Lee el archivo SQL
 with open('DBSPEAKSPORT_CLOUD.sql', 'r', encoding='utf-8') as f:

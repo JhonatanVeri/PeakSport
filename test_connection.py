@@ -89,23 +89,20 @@ def test_flask_app():
     print("=" * 60)
     
     try:
-        from app import create_app, db
-        from Modelo_de_Datos_PostgreSQL_y_CRUD import Usuarios, Productos, Categorias
-        
-        # Crear app en contexto de producción
-        app = create_app('production')
-        
+        from app import app, db
+        from Modelo_de_Datos_PostgreSQL_y_CRUD import Usuario, Producto, Categoria
+
         with app.app_context():
             print("\n✅ App Flask creada exitosamente")
-            
+
             # Verificar conexión
             db.session.execute(text("SELECT 1"))
             print("✅ SQLAlchemy conectado a Supabase")
-            
+
             # Contar registros
-            usuarios = Usuarios.query.count()
-            productos = Productos.query.count()
-            categorias = Categorias.query.count()
+            usuarios = Usuario.query.count()
+            productos = Producto.query.count()
+            categorias = Categoria.query.count()
             
             print(f"\n📊 DATOS EN SUPABASE:")
             print(f"   • Usuarios: {usuarios}")
